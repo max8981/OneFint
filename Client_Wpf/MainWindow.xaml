@@ -1,0 +1,16 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Client_Wpf"
+        xmlns:CustomControls="clr-namespace:Client_Wpf.CustomControls" x:Class="Client_Wpf.MainWindow"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="800">
+    <Grid x:Name="MainGrid">
+        <Button Content="Button" HorizontalAlignment="Left" Margin="68,36,0,0" VerticalAlignment="Top" Click="Button_Click"/>
+        <Button Content="downloadTest" HorizontalAlignment="Left" Margin="17,104,0,0" VerticalAlignment="Top" Click="Button_Click_1"/>
+        <CustomControls:DownloadProgressControl x:Name="downloader" VerticalAlignment="Bottom"/>
+        <Button Content="View" HorizontalAlignment="Left" Margin="61,189,0,0" VerticalAlignment="Top" Click="Button_Click_2"/>
+    </Grid>
+</Window>

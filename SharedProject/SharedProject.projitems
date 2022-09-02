@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>5854ad69-9c6f-45ac-a2a5-619364c11c72</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>SharedProject</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ClockHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IClientControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\BaseContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\BaseDateAt.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\BaseText.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Component.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Content.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\DeleteMaterial.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\DeleteNewFlashContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Department.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Device.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\DeviceGroup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\EmergencyContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Folder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\GlobalUsings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Hardware.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Heartbeat.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Layout.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\LayoutContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\MachineInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Material.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\MaterialDownloadUrl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\NewFlashContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\NewFlashContentPayload.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\NormalContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Owner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Page.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Role.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\TimingBoot.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\TimingBootPolicy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\TimingVolume.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\TimingVolumePolicy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\TopicHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Topics\Weekdays.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)Mock\MockContent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>
