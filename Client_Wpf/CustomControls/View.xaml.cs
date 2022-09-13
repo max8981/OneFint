@@ -1,4 +1,4 @@
-﻿using SharedProject;
+﻿using ClientLibrary;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +24,9 @@ namespace Client_Wpf.CustomControls
     {
         [DllImport("user32.dll", EntryPoint = "ShowCursor", CharSet = CharSet.Auto)]
         public static extern void ShowCursor(int status);
+        private bool xianshiqi;
+        private int volume = 0;
+        private int brightness = 50;
         public View()
         {
             InitializeComponent();
@@ -39,89 +42,87 @@ namespace Client_Wpf.CustomControls
             Activated += (o, e) => { ShowCursor(0); };
             Deactivated+=(o,e) => { ShowCursor(1); };
         }
-        public void SetNormalContents(NormalContent normal)
+        public void AddControl(string name,UserControl control)
         {
-            Dispatcher.Invoke(new Action(delegate
-            {
-                grid.Children.Clear();
-                if (normal.Layout.Content.Pages != null)
-                {
-                    foreach (var page in normal.Layout.Content.Pages)
-                    {
-                        foreach (var component in page.Components)
-                        {
-                            var control = new CustomControls.ExhibitionControl(component);
-                            switch (component.ComponentType)
-                            {
-                                case Component.ComponentTypeEnum.BROWSER:
-                                    grid.Children.Add(control.ShowWebBrowser(component.Text)); break;
-                                case Component.ComponentTypeEnum.TEXT:
-                                    grid.Children.Add(control.ShowText(component.Text)); break;
-                                case Component.ComponentTypeEnum.CLOCK:
-                                    grid.Children.Add(control.ShowClock(component)); break;
-                            }
-                        }
-                    }
-                }
-                if(normal.DefaultContents != null)
-                {
-                    SetContents(normal.DefaultContents);
-                }
-                if (normal.NormalContents != null)
-                {
-                    SetContents(normal.NormalContents);
-                }
-                Visibility = Visibility.Visible;
-            }));
+            grid.RegisterName(name, control);
+            grid.Children.Add(control);
         }
-        public void SetEmergencyContent(EmergencyContent emergency)
+        public void RemoveControl(string name)
         {
-            Dispatcher.Invoke(new Action(delegate
-            {
-                if (emergency.EmergencyContents != null)
-                {
-                    SetContents(emergency.EmergencyContents);
-                }
-            }));
+            var control = grid.FindName(name) as UIElement;
+            grid.Children.Remove(control);
         }
-        public void SetNewFlashContent(NewFlashContent newFlash)
+        public ExhibitionControl AddElement(string name, int w, int h, int x, int y, int z)
         {
-            Dispatcher.Invoke(new Action(delegate
+            ExhibitionControl element =
+            Dispatcher.Invoke(() =>
             {
-                if (newFlash.NewFlashContentPayloads != null)
+                if (grid.FindName(name) is not ExhibitionControl element)
                 {
-                    foreach (var payload in newFlash.NewFlashContentPayloads)
-                    {
-                        SetContents(new Content[] { payload.NewFlashContent });
-                    }
+                    element = new ExhibitionControl(name, w, h, x, y, z);
+                    grid.RegisterName(name, element);
+                    grid.Children.Add(element);
                 }
-            }));
+                Panel.SetZIndex(this, z);
+                return element;
+            });
+            return element;
         }
-        public void SetContents(Content[] contents)
+        public void SetLayout(ExhibitionControl[] controls)
         {
-            foreach (var content in contents)
+            foreach (var control in controls)
             {
-                var control = new ExhibitionControl(content.Component);
-                switch (content.Material.MaterialType)
-                {
-                    case Material.MaterialTypeEnum.MATERIAL_TYPE_IMAGE:
-                        control = (ExhibitionControl)control.ShowImage(content); break;
-                    case Material.MaterialTypeEnum.MATERIAL_TYPE_VIDEO:
-                        control = (ExhibitionControl)control.ShowVideo(content); break;
-                    case Material.MaterialTypeEnum.MATERIAL_TYPE_TEXT:
-                        control = (ExhibitionControl)control.ShowText(content.Text); break;
-                }
+                grid.RegisterName(control.Name, control);
                 grid.Children.Add(control);
             }
         }
-        public Grid Grid => grid;
+        public void Clear()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                grid.Children.Clear();
+            });
+        }
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Escape)
+            switch (e.Key)
             {
-                //Close();
-                Visibility = Visibility.Hidden;
+                case Key.Add:
+                    volume = volume < 100 ? volume + 1 : volume;
+                    ClientController.SetVolume(volume);
+                    break;
+                case Key.Subtract:
+                    volume = volume > 0 ? volume - 1 : volume;
+                    ClientController.SetVolume(volume);
+                    break;
+                case Key.Escape:
+                    Visibility = Visibility.Hidden;
+                    break;
+                case Key.Space:
+                    if (!xianshiqi)
+                    {
+                        ClientController.ScreenPowerOff(0);
+                        xianshiqi = true;
+                    }
+                    else
+                    {
+                        ClientController.ScreenPowerOn(0);
+                        xianshiqi = false;
+                    }
+                    break;
+                case Key.Up:
+                    brightness = brightness < 100 ? brightness + 1 : brightness;
+                    ClientController.ScreenBrightness(brightness);
+                    break;
+                case Key.Down:
+                    brightness = brightness > 0 ? brightness - 1 : brightness;
+                    ClientController.ScreenBrightness(brightness--);
+                    break;
             }
+        }
+        public void ShowView()
+        {
+            Dispatcher.Invoke(() => Visibility = Visibility.Visible);
         }
     }
 }

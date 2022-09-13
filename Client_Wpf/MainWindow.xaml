@@ -10,7 +10,13 @@
     <Grid x:Name="MainGrid">
         <Button Content="Button" HorizontalAlignment="Left" Margin="68,36,0,0" VerticalAlignment="Top" Click="Button_Click"/>
         <Button Content="downloadTest" HorizontalAlignment="Left" Margin="17,104,0,0" VerticalAlignment="Top" Click="Button_Click_1"/>
-        <CustomControls:DownloadProgressControl x:Name="downloader" VerticalAlignment="Bottom"/>
         <Button Content="View" HorizontalAlignment="Left" Margin="61,189,0,0" VerticalAlignment="Top" Click="Button_Click_2"/>
+        <RichTextBox x:Name="richTextBox" HorizontalAlignment="Right" Margin="200,0,0,0">
+            <FlowDocument x:Name="flowDoc">
+                <Paragraph>
+                    <Run Text="RichTextBox"/>
+                </Paragraph>
+            </FlowDocument>
+        </RichTextBox>
     </Grid>
 </Window>

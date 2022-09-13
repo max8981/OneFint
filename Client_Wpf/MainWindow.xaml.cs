@@ -1,9 +1,19 @@
-﻿using SharedProject;
+﻿using Client_Wpf.CustomControls;
+using ClientLibrary;
+using CoreAudio;
+using Microsoft.Win32.SafeHandles;
+using SharedProject;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
@@ -23,47 +33,82 @@ namespace Client_Wpf
     /// </summary>
     public partial class MainWindow : Window
     {
-        string url = "http://47.101.178.160:9009/videos/ebb403229cb089de04c40b7ddc81ba60CF17QQ.mp4";
+        [DllImport("user32.dll")]
+        public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, uint wParam, int iParam);
+        [DllImport("kernel32.dll")]
+        public static extern SafeWaitHandle CreateWaitableTimer(IntPtr lpTimerAttributes, bool bManualReset,string lpTimerName);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWaitableTimer(SafeWaitHandle hTimer, [In] ref long pDueTime, int lPeriod, IntPtr pfnCompletionRoutine, IntPtr lpArgToCompletionRoutin, bool fResume);
+        private const uint WM_SYSCOMMAND = 0x0112;
+        private const uint SC_MONITORPOWER = 0xF170;
+        private readonly IntPtr _handle = new(0xffff);
+        private readonly IntPtr _currentMonitor;
+        private readonly DisplayController.PHYSICAL_MONITOR[] _MONITORs;
+        private readonly MMDevice _playbackDevice;
         CustomControls.View view = new CustomControls.View();
+        readonly ClientConnect _clientConnect = new(new ClientLibrary.ClientConfig());
         public MainWindow()
         {
             InitializeComponent();
-            var client = new Client("ws://47.101.178.160:8083/mqtt", "max01");            
-            var generate = new GenerateElement(MainGrid);
-            client.LogWrite += (t, c, l) =>
+            _playbackDevice = new MMDeviceEnumerator().GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eMultimedia);
+            _currentMonitor = DisplayController.GetCurrentMonitor();
+            _MONITORs= DisplayController.GetPhysicalMonitors(_currentMonitor);
+            var ge = new GenerateElement(view);
+            ClientLibrary.ClientController.WriteLog = WiterLog;
+            ClientController.NormalContent = ge.NormalContent;
+            ClientController.ScreenPowerOff = o => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2);
+            ClientController.ScreenPowerOn = o => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, -1);
+            ClientController.SetVolume = o =>
             {
-                //logView.AppendLog(t, c, (CustomControls.LogViewControl.LogLevelEnum)l);
+                if (_playbackDevice.AudioEndpointVolume != null)
+                {
+                    o = o > 100 ? 100 : o;
+                    o = o < 0 ? 0 : o;
+                    _playbackDevice.AudioEndpointVolume.MasterVolumeLevelScalar = o / 100f;
+                }
             };
-            client.Downloader += (m, c) =>
+            ClientController.ScreenBrightness = o =>
             {
-                downloader.AddDownloadUri(m, c);
+                o = o > 100 ? 100 : o;
+                o = o < 0 ? 0 : o;
+                foreach (var monitor in _MONITORs)
+                {
+                    DisplayController.SetMonitorBrightness(monitor, o/100f);
+                }
             };
-            client.NormalContentEvent += content =>
-            {
-                view.SetNormalContents(content);
-            };
-            client.Emergency += content =>
-            {
-                view.SetEmergencyContent(content);
-            };
+            var info = new ClientLibrary.Information();
+            var infoview = new CustomControls.InformationControl(new string[] { info.DiskSize });
+            view.AddControl("info", infoview);
+            _clientConnect.Conntect();
             Closing += (o, e) => { view.Close(); };
-        }
 
+
+        }
+        private void WiterLog(string title,string content)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                flowDoc.Blocks.Add(new Paragraph(new Bold(new Run(title))));
+                flowDoc.Blocks.Add(new Paragraph(new Run(content)));
+            });
+        }
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            var json = System.IO.File.ReadAllText("./Mock/MockContent.json");
-            var normalcontent = NormalContent.FromJson(json);
-            view.SetNormalContents(normalcontent);
+            long duetime = DateTime.Now.AddMinutes(1).ToFileTime();
+            using SafeWaitHandle handle = CreateWaitableTimer(IntPtr.Zero, true, "MyWaitabletimer");
+            if(SetWaitableTimer(handle,ref duetime, 0, IntPtr.Zero, IntPtr.Zero, true))
+            {
+                using EventWaitHandle wh = new EventWaitHandle(false, EventResetMode.AutoReset);
+                wh.SafeWaitHandle = handle;
+                Process.Start("shutdown.exe", "-h");
+                wh.WaitOne();
+            }
         }
-
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
 
-            
-            var downloadtask = new CustomControls.DownloadProgressControl.DownloadTask(0,url);
-            downloader.AddDownloadUri(downloadtask, c => { MessageBox.Show($"{c.FileName}\n下载完成"); });
         }
-
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
             view.Visibility = Visibility.Visible;

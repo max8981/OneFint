@@ -1,18 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DownloadQueue" Version="2.0.0" />
     <PackageReference Include="MQTTnet" Version="4.1.0.247" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ClientLibrary\ClientLibrary.csproj" />
+    <PackageReference Include="System.Management" Version="6.0.0" />
   </ItemGroup>
 
 </Project>

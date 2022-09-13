@@ -27,7 +27,7 @@ namespace Client_Wpf.CustomControls
                 1 => System.Windows.HorizontalAlignment.Left,
                 2 => System.Windows.HorizontalAlignment.Center,
                 3 => System.Windows.HorizontalAlignment.Right,
-                _ => System.Windows.HorizontalAlignment.Left,
+                _ => System.Windows.HorizontalAlignment.Stretch,
             };
         }
         public static System.Windows.VerticalAlignment GetVertical(int vertical)
@@ -37,7 +37,7 @@ namespace Client_Wpf.CustomControls
                 1 => System.Windows.VerticalAlignment.Top,
                 2 => System.Windows.VerticalAlignment.Center,
                 3 => System.Windows.VerticalAlignment.Bottom,
-                _ => System.Windows.VerticalAlignment.Top,
+                _ => System.Windows.VerticalAlignment.Stretch,
             };
         }
         public static System.Windows.TextAlignment GetTextAlignment(int horizontal)
@@ -47,7 +47,7 @@ namespace Client_Wpf.CustomControls
                 1 => System.Windows.TextAlignment.Left,
                 2 => System.Windows.TextAlignment.Center,
                 3 => System.Windows.TextAlignment.Right,
-                _ => System.Windows.TextAlignment.Left,
+                _ => System.Windows.TextAlignment.Justify,
             };
         }
     }

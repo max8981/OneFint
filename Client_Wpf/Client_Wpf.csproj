@@ -7,11 +7,12 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
-  <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
+  <ItemGroup>
+    <PackageReference Include="CoreAudio" Version="1.16.0" />
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Masuit.Tools.Core" Version="2.5.3" />
-    <PackageReference Include="MQTTnet" Version="4.1.0.247" />
+    <ProjectReference Include="..\ClientLibrary\ClientLibrary.csproj" />
   </ItemGroup>
 
 </Project>
