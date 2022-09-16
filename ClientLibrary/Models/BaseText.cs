@@ -1,8 +1,9 @@
 ﻿using System;
-namespace ClientLibrary
+
+namespace ClientLibrary.Models
 {
-	public class BaseText
-	{
+    public class BaseText
+    {
         /// <summary>
         /// 文本，或网址
         /// </summary>
@@ -29,27 +30,15 @@ namespace ClientLibrary
         /// 文本水平位置，可选0,1,2,3; 0：UNKNOWN_CONTENT_TEXT_HORIZONTAL_POSITION；1: LEFT; 2: CENTER; 3: RIGHT;
         /// </summary>
         [JsonPropertyName("horizontal")]
-        public HorizontalEnum Horizontal { get; set; }
+        public Enums.HorizontalEnum Horizontal { get; set; }
         /// <summary>
         /// 文本垂直位置, 可选0,1,2,3; 0: UNKNOWN_CONTENT_TEXT_VERTICAL_POSITION; 1: TOP; 2: CENTER; 3:
         /// BOTTOM;
         /// </summary>
         [JsonPropertyName("vertical")]
-        public VerticalEnum Vertical { get; set; }
-        public enum HorizontalEnum
-        {
-            UNKNOWN_CONTENT_TEXT_HORIZONTAL_POSITION,
-            LEFT,
-            CENTER,
-            RIGHT,
-        }
-        public enum VerticalEnum
-        {
-            UNKNOWN_CONTENT_TEXT_VERTICAL_POSITION,
-            TOP,
-            CENTER,
-            BOTTOM,
-        }
+        public Enums.VerticalEnum Vertical { get; set; }
+
+
     }
 }
 

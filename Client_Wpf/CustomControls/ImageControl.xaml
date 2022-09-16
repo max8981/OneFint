@@ -7,6 +7,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-            
+        <TextBlock Background="Transparent" HorizontalAlignment="Left" Margin="60,69,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="84" Width="150" Foreground="#FFD80F0F"/>
+        <MediaElement HorizontalAlignment="Left" Height="100" Margin="232,160,0,0" VerticalAlignment="Top" Width="100"/>
+
     </Grid>
 </UserControl>

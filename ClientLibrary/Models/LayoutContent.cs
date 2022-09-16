@@ -1,8 +1,9 @@
 ﻿using System;
-namespace ClientLibrary
+
+namespace ClientLibrary.Models
 {
-	public class LayoutContent
-	{
+    public class LayoutContent
+    {
         [JsonPropertyName("pages")]
         public Page[] Pages { get; set; }
     }

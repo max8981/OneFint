@@ -13,5 +13,6 @@ namespace ClientLibrary
         public string MqttUser { get; set; } = "admin";
         public string MqttPassword { get; set; } = "public";
         public int HeartBeatSecond { get; set; } = 10;
+        public string DownloadPath { get; set; } = "./";
     }
 }

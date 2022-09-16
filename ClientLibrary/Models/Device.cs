@@ -1,5 +1,6 @@
 ﻿using System;
-namespace ClientLibrary
+
+namespace ClientLibrary.Models
 {
     /// <summary>
     /// 设备
@@ -67,7 +68,7 @@ namespace ClientLibrary
         /// 设备状态：0：UNKNOWN_DEVICE_STATUS；1：ONLINE；2：VIDEO；3：TEXT
         /// </summary>
         [JsonPropertyName("status")]
-        public StatusEnum Status { get; set; }
+        public Enums.DeviceStatusEnum Status { get; set; }
         /// <summary>
         /// 当前设备正在播放的内容数
         /// </summary>
@@ -83,13 +84,7 @@ namespace ClientLibrary
         [JsonPropertyName("updated_at")]
         public string UpdatedAt { get; set; }
 
-        public enum StatusEnum
-        {
-            UNKNOWN_DEVICE_STATUS,
-            ONLINE,
-            VIDEO,
-            TEXT,
-        }
+
     }
 }
 

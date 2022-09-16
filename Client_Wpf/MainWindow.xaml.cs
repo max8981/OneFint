@@ -34,29 +34,30 @@ namespace Client_Wpf
     public partial class MainWindow : Window
     {
         [DllImport("user32.dll")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, uint wParam, int iParam);
-        [DllImport("kernel32.dll")]
-        public static extern SafeWaitHandle CreateWaitableTimer(IntPtr lpTimerAttributes, bool bManualReset,string lpTimerName);
+        private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, uint wParam, int iParam);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        private static extern SafeWaitHandle CreateWaitableTimer(IntPtr lpTimerAttributes, bool bManualReset,string lpTimerName);
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool SetWaitableTimer(SafeWaitHandle hTimer, [In] ref long pDueTime, int lPeriod, IntPtr pfnCompletionRoutine, IntPtr lpArgToCompletionRoutin, bool fResume);
+        private static extern bool SetWaitableTimer(SafeWaitHandle hTimer, [In] ref long pDueTime, int lPeriod, IntPtr pfnCompletionRoutine, IntPtr lpArgToCompletionRoutin, bool fResume);
+        [DllImport("user32.dll", EntryPoint = "ShowCursor", CharSet = CharSet.Auto)]
+        private static extern void ShowCursor(int status);
         private const uint WM_SYSCOMMAND = 0x0112;
         private const uint SC_MONITORPOWER = 0xF170;
         private readonly IntPtr _handle = new(0xffff);
         private readonly IntPtr _currentMonitor;
         private readonly DisplayController.PHYSICAL_MONITOR[] _MONITORs;
         private readonly MMDevice _playbackDevice;
-        CustomControls.View view = new CustomControls.View();
-        readonly ClientConnect _clientConnect = new(new ClientLibrary.ClientConfig());
+        readonly ClientConnect _clientConnect; /*= new(new ClientLibrary.ClientConfig());*/
         public MainWindow()
         {
             InitializeComponent();
             _playbackDevice = new MMDeviceEnumerator().GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eMultimedia);
             _currentMonitor = DisplayController.GetCurrentMonitor();
             _MONITORs= DisplayController.GetPhysicalMonitors(_currentMonitor);
-            var ge = new GenerateElement(view);
             ClientLibrary.ClientController.WriteLog = WiterLog;
-            ClientController.NormalContent = ge.NormalContent;
+            ClientController.NormalAndDefaultContent = o => GenerateElement.Normal(o);
+            ClientController.EmergencyContent = o => GenerateElement.Emergenyc(o);
             ClientController.ScreenPowerOff = o => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2);
             ClientController.ScreenPowerOn = o => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, -1);
             ClientController.SetVolume = o =>
@@ -74,16 +75,31 @@ namespace Client_Wpf
                 o = o < 0 ? 0 : o;
                 foreach (var monitor in _MONITORs)
                 {
-                    DisplayController.SetMonitorBrightness(monitor, o/100f);
+                    DisplayController.SetMonitorBrightness(monitor, o / 100f);
                 }
             };
             var info = new ClientLibrary.Information();
             var infoview = new CustomControls.InformationControl(new string[] { info.DiskSize });
-            view.AddControl("info", infoview);
-            _clientConnect.Conntect();
-            Closing += (o, e) => { view.Close(); };
 
-
+            var page = new PageView();
+            page.Activated += (o, e) => ShowCursor(0);
+            page.Deactivated += (o, e) => ShowCursor(1);
+            KeyDown += (o, e) =>
+            {
+                switch (e.Key)
+                {
+                    case Key.Escape:
+                        page.Visibility = Visibility.Hidden;
+                        break;
+                }
+            };
+            page.Show();
+            _clientConnect = new ClientConnect(new ClientLibrary.ClientConfig(), page);
+            Closing += (o, e) =>
+            {
+                page.Close();
+                _clientConnect.Close();
+            };
         }
         private void WiterLog(string title,string content)
         {
@@ -111,7 +127,7 @@ namespace Client_Wpf
         }
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            view.Visibility = Visibility.Visible;
+            GenerateElement.Show();
         }
     }
 }

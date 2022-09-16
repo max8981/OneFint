@@ -1,4 +1,7 @@
 ﻿using ClientLibrary;
+using ClientLibrary.Enums;
+using ClientLibrary.Models;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,6 +24,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
 using static Client_Wpf.CustomControls.ControlHelper;
+using static ClientLibrary.Models.Content;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Client_Wpf.CustomControls
@@ -33,21 +37,28 @@ namespace Client_Wpf.CustomControls
         const string clockType1 = "yyyy-MM-dd ddd HH:mm:ss";
         const string clockType2 = "HH:mm:ss\nyyyy-MM-dd ddd";
         private string _clockFormat = "";
-        private System.Timers.Timer _timer = null!;
-        private readonly ConcurrentQueue<MediaContent> medias = new();
+        //private System.Timers.Timer _timer = null!;
+        //private readonly ConcurrentQueue<MediaContent> medias = new();
+        private readonly ConcurrentDictionary<int, MediaContent> _medias = new();
+        private readonly ConcurrentQueue<MediaContent> _defaultContents = new();
+        private readonly ConcurrentQueue<MediaContent> _normalContents = new();
+        private readonly ConcurrentQueue<MediaContent> _emergencyContents = new();
+        private readonly System.Timers.Timer _timer = new() { AutoReset = true, Interval = 1000 };
         public ExhibitionControl(string name,int w,int h,int x,int y,int z)
         {
             InitializeComponent();
-            medias = new();
             Name = name;
             Width = w;
             Height = h;
             Margin = new Thickness(x, y, 0, 0);
             HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
             VerticalAlignment = System.Windows.VerticalAlignment.Top;
+            Background = new SolidColorBrush(Colors.Transparent);
+            grid.Background = new SolidColorBrush(Colors.Transparent);
             Panel.SetZIndex(this, z);
+            _timer.Start();
         }
-        public void ShowText(int id,string content,Brush fore,Brush back,double size,int textAlignment, int horizontalAlignment,int verticalAlignment)
+        public void ShowText(int id,string content,string fore,string back,double size,int textAlignment, int horizontalAlignment,int verticalAlignment)
         {
             var name = $"text{id}";
             Dispatcher.Invoke(() =>
@@ -58,18 +69,18 @@ namespace Client_Wpf.CustomControls
                     {
                         Name = name,
                         Margin = new Thickness(0, 0, 0, 0),
-                        Text = content,
-                        FontSize = size,
-                        Foreground = fore,
-                        Background = back,
-                        TextAlignment = GetTextAlignment(textAlignment),
-                        HorizontalAlignment = GetHorizontal(horizontalAlignment),
-                        VerticalAlignment = GetVertical(verticalAlignment)
                     };
-                    grid.Background = back;
                     grid.Children.Add(textBlock);
                     grid.RegisterName(name, textBlock);
                 }
+                textBlock.Text = content;
+                textBlock.FontSize = size;
+                textBlock.Foreground = GetBrush(fore);
+                textBlock.Background = GetBrush(back);
+                textBlock.TextAlignment = GetTextAlignment(textAlignment);
+                textBlock.HorizontalAlignment = GetHorizontal(horizontalAlignment);
+                textBlock.VerticalAlignment = GetVertical(verticalAlignment);
+                grid.Background = GetBrush(back);
             });
         }
         public void ShowWebBrowser(int id,string source)
@@ -102,7 +113,7 @@ namespace Client_Wpf.CustomControls
                 return webBrowser;
             });
         }
-        public void ShowClock(int type, Brush fore, Brush back, double size)
+        public void ShowClock(int type, string fore, string back, double size)
         {
             var clock = Dispatcher.Invoke(() =>
             {
@@ -111,14 +122,14 @@ namespace Client_Wpf.CustomControls
                     Margin = new Thickness(0, 0, 0, 0),
                     Text = "clock",
                     FontSize = size,
-                    Foreground = fore,
-                    Background = back,
+                    Foreground = GetBrush(fore),
+                    Background = GetBrush(back),
                     TextAlignment = GetTextAlignment(2),
                     HorizontalAlignment = GetHorizontal(2),
                     VerticalAlignment = GetVertical(2)
                 };
                 grid.Children.Add(clock);
-                grid.Background = back;
+                grid.Background = GetBrush(back); 
                 return clock;
             });
             _clockFormat = type switch
@@ -127,7 +138,7 @@ namespace Client_Wpf.CustomControls
                 2 => clockType2,
                 _ => "",
             };
-            _timer = new()
+            System.Timers.Timer timer = new()
             {
                 AutoReset = true,
                 Interval = 1000
@@ -135,62 +146,128 @@ namespace Client_Wpf.CustomControls
             _timer.Elapsed += (o, e) =>
                 Dispatcher.Invoke(() =>
                 clock.Text = e.SignalTime.ToString(_clockFormat));
-            _timer.Start();
+            timer.Start();
         }
         public void ShowExhibition()
         {
-            medias.Clear();
-            _timer = new()
+            System.Timers.Timer timer = new()
             {
                 AutoReset = true,
-                Interval = 1000
+                Interval = 1000,
             };
-            _timer.Elapsed += AutoPlay;
-            _timer.Start();
+            //_timer.Elapsed += AutoPlay;
+            //timer.Start();
         }
-        public void AddMedia(MediaContent content)
+        public void AddContent(ContentTypeEnum type,MediaContent content)
         {
-            medias.Enqueue(content);
+            switch (type)
+            {
+                case ContentTypeEnum.NORMAL:
+                    _normalContents.Enqueue(content);
+                    break;
+                case ContentTypeEnum.EMERGENCY:
+                    _emergencyContents.Enqueue(content);
+                    break;
+                case ContentTypeEnum.NEWFLASH:
+                    break;
+                case ContentTypeEnum.DEFAULT:
+                    _defaultContents.Enqueue(content);
+                    break;
+            }
+        }
+        public void Clear(ContentTypeEnum? type =null)
+        {
+            switch (type)
+            {
+                case ContentTypeEnum.NORMAL:
+                    _normalContents.Clear();
+                    break;
+                case ContentTypeEnum.EMERGENCY:
+                    _emergencyContents.Clear();
+                    break;
+                case ContentTypeEnum.NEWFLASH:
+                    break;
+                case ContentTypeEnum.DEFAULT:
+                    _defaultContents.Clear();
+                    break;
+                default:
+                    _normalContents.Clear();
+                    _emergencyContents.Clear();
+                    _defaultContents.Clear();
+                    break;
+            }
+            _timer.Interval = 1000;
         }
         private void AutoPlay(object? source,ElapsedEventArgs elapsed)
         {
-            if (medias.TryDequeue(out var content))
+            var date = elapsed.SignalTime;
+            Hidden();
+            if (!GetMediaContent(_emergencyContents, date, out var content))
             {
-                if (elapsed.SignalTime > content.StartAt)
+                if (!GetMediaContent(_normalContents, date, out content))
                 {
-                    _timer.Interval = content.Duration * 1000;
-                    switch (content.MediaType)
+                    if (!GetMediaContent(_defaultContents, date, out content))
                     {
-                        case MediaContent.MediaTypeEnum.Video:
-                            SetVideo(content);
-                            break;
-                        case MediaContent.MediaTypeEnum.Image:
-                            SetImage(content);
-                            break;
-                        case MediaContent.MediaTypeEnum.Web:
-                            SetWeb(content.Source);
-                            break;
-                        case MediaContent.MediaTypeEnum.Text:
-                            SetText(content);
-                            break;
+                        //Hidden();
                     }
                 }
-                if (elapsed.SignalTime < content.EndAt)
-                {
-                    medias.Enqueue(content);
-                }
+            }
+
+
+ 
+            if (content != null)
+            {
+                SetContent(content);
+                _timer.Interval = content.Duration * 1000;
             }
             else
             {
                 _timer.Interval = 1000;
             }
         }
+        private static bool GetMediaContent(ConcurrentQueue<MediaContent> contents, DateTime date,out MediaContent? content)
+        {
+            bool result = false;
+            if (contents.TryDequeue(out content))
+            {
+                if(date < content.EndAt&& date > content.StartAt)
+                {
+                    contents.Enqueue(content);
+                    result = true;
+                }
+                else
+                {
+                    return GetMediaContent(contents, date, out content);
+                }
+            }
+            return result;
+        }
+        private void SetContent(MediaContent content)
+        {
+            switch (content.MediaType)
+            {
+                case MediaContent.MediaTypeEnum.Video:
+                    SetVideo(content);
+                    break;
+                case MediaContent.MediaTypeEnum.Image:
+                    SetImage(content);
+                    break;
+                case MediaContent.MediaTypeEnum.Web:
+                    SetWeb(content);
+                    break;
+                case MediaContent.MediaTypeEnum.Text:
+                    SetText(content);
+                    break;
+            }
+            //SpinWait.SpinUntil(() => DateTime.Now > content.EndAt, content.Duration * 1000);
+            //Hidden();
+            //PlayNext();
+        }
         private void SetVideo(MediaContent content)
         {
-            Hidden();
             GetMateroal(content, o =>
             {
-                Dispatcher.Invoke(() =>
+                Dispatcher.BeginInvoke(() =>
                 {
                     if (grid.FindName("video") is not MediaElement mediaElement)
                     {
@@ -199,22 +276,35 @@ namespace Client_Wpf.CustomControls
                             VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
                             HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch,
                             LoadedBehavior = MediaState.Manual,
+                            Stretch=Stretch.Fill,
+                        };
+                        mediaElement.IsVisibleChanged += (o, e) =>
+                        {
+                            var visible = e.NewValue as bool?;
+                            if (visible == false)
+                            {
+                                mediaElement.Pause();
+                            }
+                            else
+                            {
+                                mediaElement.Play();
+                            }
                         };
                         grid.Children.Add(mediaElement);
                         grid.RegisterName("video", mediaElement);
                     }
                     mediaElement.Visibility = Visibility.Visible;
                     mediaElement.Source = new Uri(o.Source);
-                    mediaElement.Volume = o.Mute ? 0 : 0.5;
+                    mediaElement.Volume = o.Mute ? 0 : 1;
                     mediaElement.Play();
                 });
             });
         }
         private void SetImage(MediaContent content)
         {
-            Hidden();
             GetMateroal(content, o =>
             {
+                var image =
                 Dispatcher.Invoke(() =>
                 {
                     if (grid.FindName("image") is not System.Windows.Controls.Image image)
@@ -227,29 +317,32 @@ namespace Client_Wpf.CustomControls
                         grid.Children.Add(image);
                         grid.RegisterName("image", image);
                     }
-                    image.Visibility = Visibility.Visible;
                     image.Source = new BitmapImage(new Uri(content.Source));
+                    image.Visibility = Visibility.Visible;
+                    return image;
                 });
+                SpinWait.SpinUntil(() => DateTime.Now > content.EndAt, content.Duration * 1000);
+                Dispatcher.Invoke(() => image.Visibility = Visibility.Hidden);
             });
+            PlayNext();
         }
-        private void SetWeb(string source)
+        private void SetWeb(MediaContent content)
         {
-            Hidden();
-            Dispatcher.Invoke(() =>
+            Dispatcher.BeginInvoke(() =>
             {
                 if(grid.FindName("web")is not WebBrowser webBrowser)
                 {
                     webBrowser = new();
+                    grid.Children.Add(webBrowser);
+                    grid.RegisterName("web", webBrowser);
                     var script = "document.body.style.overflow='hidden'";
                     webBrowser.LoadCompleted += (o, e) =>
                     {
                         webBrowser.InvokeScript("execScript", new object[] { script, "JavaScript" });
                     };
+                    webBrowser.Navigated+=(o,e)=> webBrowser.Visibility = Visibility.Visible;
                 }
-                webBrowser.Visibility = Visibility.Visible;
-                webBrowser.Navigate(source);
-                grid.Children.Add(webBrowser);
-                grid.RegisterName("web", webBrowser);
+                webBrowser.Navigate(content.Source);
                 FieldInfo? fiComWebBrowser = typeof(WebBrowser).GetField("_axIWebBrowser2", BindingFlags.Instance | BindingFlags.NonPublic);
                 if (fiComWebBrowser != null)
                 {
@@ -263,25 +356,37 @@ namespace Client_Wpf.CustomControls
         }
         private void SetText(MediaContent content)
         {
-            Hidden();
-            Dispatcher.Invoke(() =>
+            Dispatcher.BeginInvoke(() =>
             {
                 if(grid.FindName("text") is not TextBlock textBlock)
                 {
-                    textBlock = new();
+                    textBlock = new()
+                    {
+                        Margin = new Thickness(0, 0, 0, 0)
+                    };
                     grid.Children.Add(textBlock);
                     grid.RegisterName("text", textBlock);
                 }
-                textBlock.Margin = new Thickness(0, 0, 0, 0);
                 textBlock.Text = content.Source;
                 textBlock.FontSize = content.FontSize;
-                textBlock.Foreground = content.FontColor;
-                textBlock.Background = content.BackRound;
+                textBlock.Foreground = GetBrush(content.FontColor);
+                textBlock.Background = GetBrush(content.BackRound);
                 textBlock.TextAlignment = content.TextAlignment;
                 textBlock.HorizontalAlignment = content.HorizontalAlignment;
                 textBlock.VerticalAlignment = content.VerticalAlignment;
-                grid.Background = content.BackRound;
+                grid.Background = GetBrush(content.BackRound);
+                textBlock.Visibility = Visibility.Visible;
             });
+        }
+        public void PlayNext()
+        {
+            if(!GetMediaContent(_emergencyContents, DateTime.Now, out var content))
+                if (!GetMediaContent(_normalContents, DateTime.Now, out content))
+                    if (!GetMediaContent(_defaultContents, DateTime.Now, out content)) { }
+            if (content != null)
+            {
+                SetContent(content);
+            }
         }
         private void GetMateroal(MediaContent content,Action<MediaContent> callBack)
         {
@@ -324,6 +429,23 @@ namespace Client_Wpf.CustomControls
                 }
             });
         }
+        private static Brush? GetBrush(string colorString)
+        {
+            if (string.IsNullOrEmpty(colorString))
+            {
+                return new SolidColorBrush(Colors.Transparent);
+            }
+            else
+            {
+                var color = (System.Windows.Media.Color)ColorConverter.ConvertFromString(colorString);
+                return new SolidColorBrush(color);
+            }
+        }
+        public void Close()
+        {
+            _timer.Close();
+            this.Close();
+        }
         ~ExhibitionControl()
         {
             _timer.Close();
@@ -339,8 +461,8 @@ namespace Client_Wpf.CustomControls
             public DateTime StartAt { get; set; }
             public DateTime EndAt { get; set; }
             public string Text { get; set; }
-            public Brush BackRound { get; set; }
-            public Brush FontColor { get; set; }
+            public string BackRound { get; set; }
+            public string FontColor { get; set; }
             public double FontSize { get; set; }
             public System.Windows.TextAlignment TextAlignment { get; set; }
             public System.Windows.HorizontalAlignment HorizontalAlignment { get; set; }

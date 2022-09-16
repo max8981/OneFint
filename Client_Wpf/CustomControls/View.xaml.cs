@@ -23,14 +23,15 @@ namespace Client_Wpf.CustomControls
     public partial class View : Window
     {
         [DllImport("user32.dll", EntryPoint = "ShowCursor", CharSet = CharSet.Auto)]
-        public static extern void ShowCursor(int status);
+        private static extern void ShowCursor(int status);
         private bool xianshiqi;
         private int volume = 0;
         private int brightness = 50;
         public View()
         {
             InitializeComponent();
-            Background = new SolidColorBrush(Colors.Black);
+            //Background = new SolidColorBrush(Colors.Black);
+            grid.Background = new SolidColorBrush(Colors.Black);
             WindowState = WindowState.Normal;
             WindowStyle = WindowStyle.None;
             ResizeMode = ResizeMode.NoResize;
@@ -40,17 +41,10 @@ namespace Client_Wpf.CustomControls
             Width = SystemParameters.PrimaryScreenWidth;
             Height = SystemParameters.PrimaryScreenHeight;
             Activated += (o, e) => { ShowCursor(0); };
-            Deactivated+=(o,e) => { ShowCursor(1); };
-        }
-        public void AddControl(string name,UserControl control)
-        {
-            grid.RegisterName(name, control);
-            grid.Children.Add(control);
-        }
-        public void RemoveControl(string name)
-        {
-            var control = grid.FindName(name) as UIElement;
-            grid.Children.Remove(control);
+            Deactivated += (o, e) => { ShowCursor(1); };
+#if DEBUG
+            Topmost = false;
+#endif
         }
         public ExhibitionControl AddElement(string name, int w, int h, int x, int y, int z)
         {
@@ -67,14 +61,6 @@ namespace Client_Wpf.CustomControls
                 return element;
             });
             return element;
-        }
-        public void SetLayout(ExhibitionControl[] controls)
-        {
-            foreach (var control in controls)
-            {
-                grid.RegisterName(control.Name, control);
-                grid.Children.Add(control);
-            }
         }
         public void Clear()
         {
@@ -123,6 +109,10 @@ namespace Client_Wpf.CustomControls
         public void ShowView()
         {
             Dispatcher.Invoke(() => Visibility = Visibility.Visible);
+        }
+        public void HiddenView()
+        {
+            Dispatcher.Invoke(() => Visibility = Visibility.Hidden);
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using Client_Wpf.CustomControls;
-using ClientLibrary;
+using ClientLibrary.Enums;
+using ClientLibrary.Models;
+using ClientLibrary.ServerToClient;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,34 +14,61 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Xml.Linq;
-using Brush = System.Windows.Media.Brush;
-using ColorConverter = System.Windows.Media.ColorConverter;
 
 namespace Client_Wpf
 {
     internal class GenerateElement
     {
-        private readonly CustomControls.View _view;
-        private readonly Dictionary<int, ExhibitionControl> _exhibitions = new();
-        public Action<BaseContent> Content => SetLayout;
-        public GenerateElement(CustomControls.View view)
+        private static readonly Dictionary<int, ExhibitionControl> _exhibitions = new();
+        private static readonly Dictionary<int, View> _views = new();
+        public static void Normal(BaseContent content)
         {
-            _view = view;
-            if(TryLoadLayout(out var content))
+            SetLayout(content.Layout);
+            SetContent(content.NormalContents);
+            SetContent(content.DefaultContents);
+        }
+        public static void Emergenyc(BaseContent content)
+        {
+            SetLayout(content.Layout);
+            SetContent(content.EmergencyContents);
+        }
+        public static void Show(int id = 0)
+        {
+            if(_views.TryGetValue(id,out var view))
             {
-                SetLayout(content);
+                view.ShowView();
+            }
+            else
+            {
+                foreach (var item in _views.Values)
+                {
+                    item.ShowView();
+                }
             }
         }
-        public void NormalContent(BaseContent baseContent)
+        public static void Close()
         {
-            foreach (var page in baseContent.Layout.Content.Pages)
+            foreach (var item in _exhibitions.Values)
             {
-                SetLayout(page.Id, page);
+                item.Close();
             }
-            SetContent(baseContent.NormalContents);
+            foreach (var item in _views.Values)
+            {
+                item.Close();
+            }
         }
-        private void SetLayout(int index,ClientLibrary.Page page)
+        private static View GetView(int id)
         {
+            if(!_views.TryGetValue(id,out var view))
+            {
+                view = Application.Current.Dispatcher.Invoke(() => { return new View(); });
+                _views.Add(id, view);
+            }
+            return view;
+        }
+        private static void SetLayout(ClientLibrary.Models.Layout layout)
+        {
+            var page = layout.Content.Pages.First();
             foreach (var compnent in page.Components)
             {
                 var id = compnent.Id;
@@ -50,161 +79,80 @@ namespace Client_Wpf
                 var y = compnent.Y;
                 var z = compnent.Z;
                 var text = compnent.Text;
-                var element = _view.AddElement(name, w, h, x, y, z);
+                var element = GetView(layout.Id).AddElement(name, w, h, x, y, z);
                 switch (compnent.ComponentType)
                 {
-                    case Component.ComponentTypeEnum.BROWSER:
+                    case ComponentTypeEnum.BROWSER:
                         element.ShowWebBrowser(id, text.Text);
                         break;
-                    case Component.ComponentTypeEnum.TEXT:
-                        element.ShowText(id, text.Text, GetBrush(text.FontColor), GetBrush(text.BackgroundColor), GetFontSize(text.FontSize), (int)text.Horizontal, (int)text.Horizontal, (int)text.Vertical);
+                    case ComponentTypeEnum.TEXT:
+                        element.ShowText(id, text.Text, text.FontColor, text.BackgroundColor, GetFontSize(text.FontSize), (int)text.Horizontal, (int)text.Horizontal, (int)text.Vertical);
                         break;
-                    case Component.ComponentTypeEnum.CLOCK:
-                        element.ShowClock((int)compnent.ClockType, GetBrush(text.FontColor), GetBrush(text.BackgroundColor), GetFontSize(text.FontSize));
+                    case ComponentTypeEnum.CLOCK:
+                        element.ShowClock((int)compnent.ClockType, text.FontColor, text.BackgroundColor, GetFontSize(text.FontSize));
                         break;
-                    case Component.ComponentTypeEnum.EXHIBITION_STAND:
+                    case ComponentTypeEnum.EXHIBITION_STAND:
                         element.ShowExhibition();
                         _exhibitions.TryAdd(id, element);
                         break;
                 }
             }
         }
-        private void SetLayout(BaseContent baseContent)
-        {
-            var isLocal = TryLoadLayout(out var local);
-            SaveLayout(baseContent);
-            _view.Dispatcher.Invoke(() =>
-            {
-                _view.Clear();
-                var layouts = baseContent.Layout.Content.Pages;
-                foreach (var layout in layouts)
-                {
-                    foreach (var compnent in layout.Components)
-                    {
-                        if (isLocal)
-                        {
-                            if (layout.Id == local.Layout.Id)
-                            {
-                                if (compnent.Equals(local.Layout.Content.Pages[0].Components.First(_ => _.Id == compnent.Id)))
-                                {
-                                    continue;
-                                }
-                            }
-                        }
-                        var id = compnent.Id;
-                        var name = compnent.Name ?? $"Element{compnent.Id}";
-                        var w = compnent.W;
-                        var h = compnent.H;
-                        var x = compnent.X;
-                        var y = compnent.Y;
-                        var z = compnent.Z;
-                        var text = compnent.Text;
-                        var element = _view.AddElement(name, w, h, x, y, z);
-                        switch (compnent.ComponentType)
-                        {
-                            //case Component.ComponentTypeEnum.IMAGE:
-                            //    element.ShowImage(text.Text);
-                            //    break;
-                            case Component.ComponentTypeEnum.BROWSER:
-                                element.ShowWebBrowser(id,text.Text);
-                                break;
-                            case Component.ComponentTypeEnum.TEXT:
-                                element.ShowText(id, text.Text, GetBrush(text.FontColor), GetBrush(text.BackgroundColor), GetFontSize(text.FontSize), (int)text.Horizontal, (int)text.Horizontal, (int)text.Vertical);
-                                break;
-                            //case Component.ComponentTypeEnum.VIDEO:
-                            //    element.ShowVideo(text.Text);
-                            //    break;
-                            case Component.ComponentTypeEnum.CLOCK:
-                                element.ShowClock((int)compnent.ClockType, GetBrush(text.FontColor), GetBrush(text.BackgroundColor), GetFontSize(text.FontSize));
-                                break;
-                            case Component.ComponentTypeEnum.EXHIBITION_STAND:
-                                element.ShowExhibition();
-                                _exhibitions.TryAdd(id, element);
-                                break;
-                        }
-                    }
-                }
-                SetContent(baseContent.DefaultContents);
-                SetContent(baseContent.NormalContents);
-                SetContent(baseContent.EmergencyContents);
-            });
-        }
-        private void SetContent(Content[]? contents)
+        private static void SetContent(Content[]? contents)
         {
             if (contents != null)
             {
-                foreach (var exhibition in _exhibitions)
+                var types = contents.GroupBy(_ => _.ContentType).ToArray();
+                foreach (var typeGroup in types)
                 {
-                    var element = exhibition.Value;
-                    var list = contents
-                        .Where(_=>_.Component.Id==exhibition.Key)
-                        .OrderBy(_ => _.Order)
-                        .ToArray();
-                    foreach (var content in list)
+                    var group = typeGroup
+                    .GroupBy(_ => _.Component.Id)
+                    .Select(_ => new { ExhibitionControl = _exhibitions[_.Key], Content = _ })
+                    .ToArray();
+                    foreach (var exhibitionGroup in group)
                     {
-                        var media = new ExhibitionControl.MediaContent
+                        var exhibition = exhibitionGroup.ExhibitionControl;
+                        exhibition.Clear(typeGroup.Key);
+                        foreach (var content in exhibitionGroup.Content)
                         {
-                            Name=content.Name,
-                            StartAt = DateTime.Parse(content.StartedAt),
-                            EndAt = DateTime.Parse(content.EndedAt),
-                            Duration = content.PlayDuration,
-                            Mute = content.Mute,
-                            Id = content.Id,
-                            MediaType = GetMediaType((int)content.Material.MaterialType),
-                            Text = content.Text.Text,
-                            FontSize = GetFontSize(content.Text.FontSize),
-                            FontColor = GetBrush(content.Text.FontColor),
-                            BackRound = GetBrush(content.Text.BackgroundColor),
-                            TextAlignment = GetTextAlignment((int)content.Text.Horizontal),
-                            HorizontalAlignment = GetHorizontal((int)content.Text.Horizontal),
-                            VerticalAlignment = GetVertical((int)content.Text.Vertical),
-                        };
-                        switch (media.MediaType)
-                        {
-                            case ExhibitionControl.MediaContent.MediaTypeEnum.Video:
-                                media.Source = content.Material.Content;
-                                break;
-                            case ExhibitionControl.MediaContent.MediaTypeEnum.Image:
-                                media.Source = content.Material.Content;
-                                break;
-                            case ExhibitionControl.MediaContent.MediaTypeEnum.Web:
-                                media.Source = content.Url;
-                                break;
-                            default:
-                                media.Source = content.Text.Text;
-                                break;
+                            var media = new ExhibitionControl.MediaContent
+                            {
+                                Name = content.Name,
+                                StartAt = DateTime.Parse(content.StartedAt),
+                                EndAt = DateTime.Parse(content.EndedAt),
+                                Duration = content.PlayDuration,
+                                Mute = content.Mute,
+                                Id = content.Id,
+                                MediaType = GetMediaType((int)content.Material.MaterialType),
+                                Text = content.Text.Text,
+                                FontSize = GetFontSize(content.Text.FontSize),
+                                FontColor = content.Text.FontColor,
+                                BackRound = content.Text.BackgroundColor,
+                                TextAlignment = GetTextAlignment((int)content.Text.Horizontal),
+                                HorizontalAlignment = GetHorizontal((int)content.Text.Horizontal),
+                                VerticalAlignment = GetVertical((int)content.Text.Vertical),
+                            };
+                            switch (media.MediaType)
+                            {
+                                case ExhibitionControl.MediaContent.MediaTypeEnum.Video:
+                                    media.Source = content.Material.Content;
+                                    break;
+                                case ExhibitionControl.MediaContent.MediaTypeEnum.Image:
+                                    media.Source = content.Material.Content;
+                                    break;
+                                case ExhibitionControl.MediaContent.MediaTypeEnum.Web:
+                                    media.Source = content.Url;
+                                    break;
+                                default:
+                                    media.Source = content.Text.Text;
+                                    break;
+                            }
+                            exhibition.AddContent(typeGroup.Key, media);
                         }
-                        element.AddMedia(media);
+                        exhibition.PlayNext();
                     }
                 }
             }
-        }
-        public static BaseContent FromJson(string json)
-        {
-            var baseContent = System.Text.Json.JsonSerializer.Deserialize<BaseContent>(json);
-            return baseContent ?? new BaseContent();
-        }
-        private static void SaveLayout(BaseContent baseContent)
-        {
-            var json = System.Text.Json.JsonSerializer.Serialize(baseContent);
-            System.IO.File.WriteAllText("./save", json);
-        }
-        public static bool TryLoadLayout(out BaseContent content)
-        {
-            BaseContent result = null!;
-            if (System.IO.File.Exists("./save"))
-            {
-                var json = System.IO.File.ReadAllText("./save");
-                result = System.Text.Json.JsonSerializer.Deserialize<BaseContent>(json)!;
-            }
-            content = result ?? (new());
-            return result != null;
-        }
-        private static Brush GetBrush(string colorString)
-        {
-            colorString = string.IsNullOrEmpty(colorString) ? "#FFFFFF" : colorString;
-            var color = (System.Windows.Media.Color)ColorConverter.ConvertFromString(colorString);
-            return new SolidColorBrush(color);
         }
         private static double GetFontSize(int? value)
         {
@@ -246,6 +194,7 @@ namespace Client_Wpf
             {
                 2 => ExhibitionControl.MediaContent.MediaTypeEnum.Video,
                 3 => ExhibitionControl.MediaContent.MediaTypeEnum.Image,
+                4 => ExhibitionControl.MediaContent.MediaTypeEnum.Web,
                 5 => ExhibitionControl.MediaContent.MediaTypeEnum.Text,
                 _ => ExhibitionControl.MediaContent.MediaTypeEnum.Text,
             };

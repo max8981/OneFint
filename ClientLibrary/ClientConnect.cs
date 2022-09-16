@@ -1,7 +1,8 @@
-﻿using Microsoft.VisualBasic;
+﻿using ClientLibrary.ServerToClient;
+using ClientLibrary.UIs;
+using Microsoft.VisualBasic;
 using MQTTnet;
 using MQTTnet.Client;
-using SharedProject;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,9 +18,11 @@ namespace ClientLibrary
         private readonly System.Timers.Timer _timer;
         private readonly IMqttClient _client;
         private readonly MqttClientOptionsBuilder _optionsBuilder;
+        private readonly UIController _UI;
         private bool _connected = false;
-        public ClientConnect(ClientConfig config)
+        public ClientConnect(ClientConfig config,IPageController page)
         {
+            _UI = new(page);
             _code = config.Code;
             _timer = new System.Timers.Timer
             {
@@ -99,7 +102,7 @@ namespace ClientLibrary
                 await _client.SubscribeAsync(topic, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtMostOnce);
             }
         }
-        private static void Receive(ServerToClient.TopicTypeEnum topic, string json)
+        private void Receive(ServerToClient.TopicTypeEnum topic, string json)
         {
             ClientController.WriteLog(topic.ToString(), json);
             switch (topic)
@@ -122,11 +125,11 @@ namespace ClientLibrary
                     break;
                 case ServerToClient.TopicTypeEnum.content:
                     if (TryFromJson<BaseContent>(json, out var normalContent))
-                        ClientController.NormalContent(normalContent!);
+                        _UI.NormalAndDefaultContent(normalContent!);
                     break;
                 case ServerToClient.TopicTypeEnum.emergency_content:
                     if (TryFromJson<BaseContent>(json, out var emergencyContent))
-                        ClientController.EmergrgencyContent(emergencyContent!);
+                        ClientController.EmergencyContent(emergencyContent!);
                     break;
                 case ServerToClient.TopicTypeEnum.timing_boot:
                     if (TryFromJson<TimingBoot>(json, out var timingBoot))
@@ -141,7 +144,7 @@ namespace ClientLibrary
         private async void Send(ClientToServer.TopicTypeEnum topic, string json)
         {
             await _client.PublishStringAsync(topic.ToString(), json);
-            ClientController.WriteLog(topic.ToString(), json);
+            //ClientController.WriteLog(topic.ToString(), json);
         }
         private static void WrietLog(string title, string content)
         {
@@ -149,10 +152,14 @@ namespace ClientLibrary
             File.WriteAllText($"./log/{title}-{DateTime.Now.Ticks}.json", content);
             Console.WriteLine($"{DateTime.Now}\t[{title}]\t{content}");
         }
-        private static bool TryFromJson<T>(string json,out T? result)
+        private bool TryFromJson<T>(string json,out T? result)where T:Topic
         {
             result = JsonSerializer.Deserialize<T>(json);
-            return result is not null;
+            if (result?.Code == _code)
+            {
+                return true;
+            }
+            return false;
         }
         ~ClientConnect()
         {

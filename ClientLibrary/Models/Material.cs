@@ -1,10 +1,11 @@
 ﻿using System;
-namespace ClientLibrary
+
+namespace ClientLibrary.Models
 {
     /// <summary>
     /// 素材
     /// </summary>
-    public class Material:BaseDateAt
+    public class Material : BaseDateAt
     {
         /// <summary>
         /// 素材ID
@@ -21,7 +22,7 @@ namespace ClientLibrary
         /// 2:MATERIAL_TYPE_VIDEO  3:MATERIAL_TYPE_IMAGE
         /// </summary>
         [JsonPropertyName("material_type")]
-        public MaterialTypeEnum MaterialType { get; set; }
+        public Enums.MaterialTypeEnum MaterialType { get; set; }
         [JsonPropertyName("folder")]
         public Folder Folder { get; set; }
         /// <summary>
@@ -29,15 +30,6 @@ namespace ClientLibrary
         /// </summary>
         [JsonPropertyName("content")]
         public string Content { get; set; }
-
-        public enum MaterialTypeEnum
-        {
-            UNKNOWN_MATERIAL_TYPE,
-            MATERIAL_TYPE_AUDIO,
-            MATERIAL_TYPE_VIDEO,
-            MATERIAL_TYPE_IMAGE,
-            MATERIAL_TYPE_TEXT=5,
-        }
     }
 }
 

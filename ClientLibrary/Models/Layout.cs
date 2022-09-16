@@ -1,7 +1,9 @@
 ﻿using System;
-namespace ClientLibrary
+using ClientLibrary.Models;
+
+namespace ClientLibrary.Models
 {
-	public class Layout:BaseDateAt
+    public class Layout:BaseDateAt
 	{
         /// <summary>
         /// 布局ID

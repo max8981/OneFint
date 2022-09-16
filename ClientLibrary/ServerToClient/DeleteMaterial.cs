@@ -1,11 +1,10 @@
 ﻿using System;
-namespace ClientLibrary
-{
-	public class DeleteMaterial
-	{
-        [JsonPropertyName("code")]
-        public string Code { get; set; }
+using ClientLibrary.Models;
 
+namespace ClientLibrary.ServerToClient
+{
+    public class DeleteMaterial:Topic
+    {
         [JsonPropertyName("device_id")]
         public decimal? DeviceId { get; set; }
 

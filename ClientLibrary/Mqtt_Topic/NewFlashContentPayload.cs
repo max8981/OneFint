@@ -1,7 +1,9 @@
 ﻿using System;
+using ClientLibrary.Models;
+
 namespace ClientLibrary
 {
-	public class NewFlashContentPayload
+    public class NewFlashContentPayload
 	{
         [JsonPropertyName("new_flash_content")]
         public Content NewFlashContent { get; set; }

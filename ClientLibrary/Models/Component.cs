@@ -1,5 +1,6 @@
 ﻿using System;
-namespace ClientLibrary
+
+namespace ClientLibrary.Models
 {
     public class Component
     {
@@ -49,20 +50,20 @@ namespace ClientLibrary
         /// 2:BROWSER; 3:TEXT; 4:VIDEO; 5: CLOCK; 6:EXHIBITION_STAND
         /// </summary>
         [JsonPropertyName("component_type")]
-        public ComponentTypeEnum ComponentType { get; set; }
+        public Enums.ComponentTypeEnum ComponentType { get; set; }
         /// <summary>
         /// 可选0,1,2,3；0: UNKNOWN_COMPONENT_INTERCHANGE_EFFECT; 1: NULL; 2:FADE_IN_AND_OUT;
         /// 3:PUSH_IN_AND_OUT
         /// </summary>
         [JsonPropertyName("interchange_effect")]
-        public InterchangeEffectEnum InterchangeEffect { get; set; }
+        public Enums.InterchangeEffectEnum InterchangeEffect { get; set; }
         [JsonPropertyName("text")]
         public BaseText Text { get; set; }
         /// <summary>
         /// 时钟类型，可选0，1，2；0: UNKNOWN_CLOCK_TYPE; 1: TYPE_1; 2: TYPE_2
         /// </summary>
         [JsonPropertyName("clock_type")]
-        public ClockTypeEnum ClockType { get; set; }
+        public Enums.ClockTypeEnum ClockType { get; set; }
         /// <summary>
         /// 字体颜色
         /// </summary>
@@ -83,29 +84,6 @@ namespace ClientLibrary
         /// </summary>
         [JsonPropertyName("pad_url")]
         public string PadUrl { get; set; }
-        public enum ComponentTypeEnum
-        {
-            UNKNOWN_COMPONENT_TYPE,
-            IMAGE,
-            BROWSER,
-            TEXT,
-            VIDEO,
-            CLOCK,
-            EXHIBITION_STAND,
-        }
-        public enum InterchangeEffectEnum
-        {
-            UNKNOWN_COMPONENT_INTERCHANGE_EFFECT,
-            NULL,
-            FADE_IN_AND_OUT,
-            PUSH_IN_AND_OUT,
-        }
-        public enum ClockTypeEnum
-        {
-            UNKNOWN_CLOCK_TYPE,
-            TYPE_1,
-            TYPE_2,
-        }
     }
 }
 

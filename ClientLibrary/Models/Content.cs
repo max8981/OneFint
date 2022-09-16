@@ -1,8 +1,9 @@
 ﻿using System;
-namespace ClientLibrary
+
+namespace ClientLibrary.Models
 {
-	public class Content:BaseDateAt
-	{
+    public class Content : BaseDateAt
+    {
         /// <summary>
         /// 内容ID
         /// </summary>
@@ -44,12 +45,12 @@ namespace ClientLibrary
         /// 内容状态；0：UNKNOWN_CONTENT_STATUS；1：TO_REVIEW；2：REVIEW_FAIL；3：PLAYING；4：TO_PLAY; 5: EXPIRED
         /// </summary>
         [JsonPropertyName("status")]
-        public StatusEnum Status { get; set; }
+        public Enums.ContentStatusEnum Status { get; set; }
         /// <summary>
         /// 内容类型：0：UNKNOWN_CONTENT_TYPE；1:NORMAL; 2: EMERGENCY; 3: NEWFLASH; 4:DEFAULT
         /// </summary>
         [JsonPropertyName("content_type")]
-        public ContentTypeEnum ContentType { get; set; }
+        public Enums.ContentTypeEnum ContentType { get; set; }
         /// <summary>
         /// 是否校验
         /// </summary>
@@ -91,23 +92,8 @@ namespace ClientLibrary
         [JsonPropertyName("order")]
         public int Order { get; set; }
 
-        public enum ContentTypeEnum
-        {
-            UNKNOWN_CONTENT_TYPE,
-            NORMAL,
-            EMERGENCY,
-            NEWFLASH,
-            DEFAULT,
-        }
-        public enum StatusEnum
-        {
-            UNKNOWN_CONTENT_STATUS,
-            TO_REVIEW,
-            REVIEW_FAIL,
-            PLAYING,
-            TO_PLAY,
-            EXPIRED,
-        }
+
+
     }
 }
 

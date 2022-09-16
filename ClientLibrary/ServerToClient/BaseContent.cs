@@ -1,13 +1,10 @@
 ﻿using System;
-namespace ClientLibrary
+using ClientLibrary.Models;
+
+namespace ClientLibrary.ServerToClient
 {
-	public class BaseContent
-	{
-        /// <summary>
-        /// 设备编码
-        /// </summary>
-        [JsonPropertyName("code")]
-        public string Code { get; set; }
+    public class BaseContent:Topic
+    {
         /// <summary>
         /// 布局
         /// </summary>

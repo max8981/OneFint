@@ -1,5 +1,6 @@
 ﻿using System;
-namespace ClientLibrary
+
+namespace ClientLibrary.Models
 {
     public class Page
     {

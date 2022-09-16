@@ -1,11 +1,10 @@
 ﻿using System.Text.Json.Serialization;
-namespace SharedProject
-{
-    public class MaterialDownloadUrl:GlobalUsings
-    {
-        [JsonPropertyName("code")]
-        public string Code { get; set; }
+using SharedProject;
 
+namespace ClientLibrary.ServerToClient
+{
+    public class MaterialDownloadUrl : Topic
+    {
         /// <summary>
         /// 内容id
         /// </summary>
@@ -29,9 +28,5 @@ namespace SharedProject
         /// </summary>
         [JsonPropertyName("url")]
         public string Url { get; set; }
-        public static MaterialDownloadUrl FromJson(string json)
-        {
-            return FromJson<MaterialDownloadUrl>(json);
-        }
     }
 }

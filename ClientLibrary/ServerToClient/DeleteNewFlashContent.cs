@@ -1,15 +1,10 @@
 ﻿using System.Text.Json.Serialization;
+using ClientLibrary.Models;
 
-namespace ClientLibrary
+namespace ClientLibrary.ServerToClient
 {
-    public partial class DeleteNewFlashContent
+    public partial class DeleteNewFlashContent:Topic
     {
-        /// <summary>
-        /// 设备编码
-        /// </summary>
-        [JsonPropertyName("code")]
-        public string Code { get; set; }
-
         /// <summary>
         /// 待删除的插播内容
         /// </summary>

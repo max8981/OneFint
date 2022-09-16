@@ -1,5 +1,5 @@
 ﻿using ClientLibrary.ClientToServer;
-using SharedProject;
+using ClientLibrary.ServerToClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,8 +24,8 @@ namespace ClientLibrary
         public static Action<DeleteNewFlashContent> DeleteNewFlashContent { get; set; } = o => { };
         public static Func<MaterialDownloadUrl, bool> MaterialDownloadUrl { get; set; } = o => { return false; };
         public static Action<BaseContent> NewFlashContent { get; set; } = o => { };
-        public static Action<BaseContent> NormalContent { get; set; } = o => { };
-        public static Action<BaseContent> EmergrgencyContent { get; set; } = o => { };
+        public static Action<BaseContent> NormalAndDefaultContent { get; set; } = o => { };
+        public static Action<BaseContent> EmergencyContent { get; set; } = o => { };
         public static Action<TimingBoot> TimingBoot { get; set; } = o => { };
         public static Action<TimingVolume> TimingVolume { get; set; } = o => { };
         public static Action<HeartBeat> HeartBeat { get; set; } = o => { };

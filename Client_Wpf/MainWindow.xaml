@@ -18,5 +18,6 @@
                 </Paragraph>
             </FlowDocument>
         </RichTextBox>
+        <TextBlock x:Name="tb" HorizontalAlignment="Left" Margin="75,194,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top"/>
     </Grid>
 </Window>
