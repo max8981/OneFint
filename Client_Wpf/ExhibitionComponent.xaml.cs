@@ -35,6 +35,7 @@ namespace Client_Wpf
     public partial class ExhibitionComponent : UserControl,ClientLibrary.UIs.IExhibition
     {
         private readonly Dictionary<int, FrameworkElement> _elements;
+        private MediaPlayer _mediaPlayer;
         public ExhibitionComponent(int id, string name, System.Drawing.Rectangle rectangle, int z)
         {
             InitializeComponent();
@@ -48,6 +49,7 @@ namespace Client_Wpf
             Background = new SolidColorBrush(Colors.Transparent);
             grid.Background = new SolidColorBrush(Colors.Transparent);
             _elements = new();
+            _mediaPlayer = null!;
             Panel.SetZIndex(this, z);
         }
 
@@ -71,30 +73,26 @@ namespace Client_Wpf
 
         public void ShowAudio(int id, string source)
         {
-            throw new NotImplementedException();
+            Dispatcher.Invoke(() =>
+            {
+                if (_mediaPlayer == null)
+                {
+                    _mediaPlayer = new MediaPlayer
+                    {
+                        Volume = 1,
+                    };
+                    _mediaPlayer.MediaOpened += (o, e) => _mediaPlayer.Play();
+                }
+                _mediaPlayer.Open(new Uri(source));
+            });
         }
 
         public void ShowClock(int id, BaseText text, ClockTypeEnum clockType)
         {
             const string clockType1 = "yyyy-MM-dd ddd HH:mm:ss";
             const string clockType2 = "HH:mm:ss\nyyyy-MM-dd ddd";
-            //var clock = Dispatcher.Invoke(() =>
-            //{
-            //    TextBlock clock = new()
-            //    {
-            //        Margin = new Thickness(0, 0, 0, 0),
-            //        Text = "clock",
-            //        FontSize = size,
-            //        Foreground = GetBrush(fore),
-            //        Background = GetBrush(back),
-            //        TextAlignment = GetTextAlignment(2),
-            //        HorizontalAlignment = GetHorizontal(2),
-            //        VerticalAlignment = GetVertical(2)
-            //    };
-            //    grid.Children.Add(clock);
-            //    grid.Background = GetBrush(back);
-            //    return clock;
-            //});
+            text.Horizontal = (HorizontalEnum)2;
+            text.Vertical = (VerticalEnum)2;
             var _clockFormat = clockType switch
             {
                 ClockTypeEnum.TYPE_1=>clockType1,

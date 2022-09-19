@@ -39,7 +39,23 @@ namespace ClientLibrary.UIs
         }
         public void NewFlashContent(BaseContent baseContent)
         {
-
+            SetLayout(baseContent.Layout);
+            if (baseContent.NewFlashContentPayloads != null)
+            foreach (var newFlash in baseContent.NewFlashContentPayloads)
+            {
+                    var componentId = newFlash.NewFlashContent.Component.Id;
+                    _exhibitions[componentId].AddNewFlashContent(newFlash);
+                    _exhibitions[componentId].Play();
+            }
+        }
+        public void DeleteNewFlashContent(DeleteNewFlashContent deleteNewFlash)
+        {
+            foreach (var content in deleteNewFlash.NewFlashContents)
+            {
+                var id = content.Id;
+                var componentId = content.Component.Id;
+                _exhibitions[componentId].RemoveNewFlashContent(id);
+            }
         }
         private void SetLayout(Models.Layout layout)
         {
@@ -75,15 +91,15 @@ namespace ClientLibrary.UIs
                 case Enums.ComponentTypeEnum.VIDEO:
                     break;
                 case Enums.ComponentTypeEnum.CLOCK:
-                    break;
                     exhibition.ShowClock(component.Id, component.Text, component.ClockType);
+                    break;
                 case Enums.ComponentTypeEnum.EXHIBITION_STAND:
                     controller.SetExhibition();
                     break;
             }
             _exhibitions.TryAdd(id, controller);
         }
-        public void SetContents(Models.Content[] contents)
+        public void SetContents(Models.Content[]? contents)
         {
             if (contents != null)
             {

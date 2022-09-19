@@ -1,7 +1,8 @@
 ﻿using System;
-namespace ClientLibrary
+
+namespace ClientLibrary.Models
 {
-    public partial class Folder:BaseDateAt
+    public partial class Folder : BaseDateAt
     {
         /// <summary>
         /// 目录id

@@ -1,4 +1,4 @@
-﻿namespace SharedProject
+﻿namespace ClientLibrary.Models
 {
     /// <summary>
     /// UNKNOWN_WEEKDAY = 0; WEEKDAY_MONDAY = 1; WEEKDAY_TUESDAY = 2; WEEKDAY_WEDNESDAY = 3;
@@ -11,18 +11,7 @@
         /// 6:SATURDAY; 7:SUNDAY
         /// </summary>
         [JsonPropertyName("days")]
-        public WeekdayEnum[] Days { get; set; }
-    }
-    public enum WeekdayEnum
-    {
-        UNKNOWN_WEEKDAY,
-        MONDAY,
-        TUESDAY,
-        WEDNESDAY,
-        THURSDAY,
-        FRIDAY,
-        SATURDAY,
-        SUNDAY,
+        public Enums.WeekdayEnum[]? Days { get; set; }
     }
 }
 

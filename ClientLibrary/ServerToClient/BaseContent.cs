@@ -14,22 +14,22 @@ namespace ClientLibrary.ServerToClient
         /// 普通内容
         /// </summary>
         [JsonPropertyName("normal_contents")]
-        public Content[] NormalContents { get; set; }
+        public Content[]? NormalContents { get; set; }
         /// <summary>
         /// 托底内容
         /// </summary>
         [JsonPropertyName("default_contents")]
-        public Content[] DefaultContents { get; set; }
+        public Content[]? DefaultContents { get; set; }
         /// <summary>
         /// 紧急内容
         /// </summary>
         [JsonPropertyName("emergency_contents")]
-        public Content[] EmergencyContents { get; set; }
+        public Content[]? EmergencyContents { get; set; }
         /// <summary>
         /// 插播内容
         /// </summary>
         [JsonPropertyName("new_flash_content_payloads")]
-        public NewFlashContentPayload[] NewFlashContentPayloads { get; set; }
+        public NewFlashContentPayload[]? NewFlashContentPayloads { get; set; }
     }
 }
 

@@ -1,10 +1,9 @@
 ﻿using System;
-using ClientLibrary.Models;
 
-namespace ClientLibrary
+namespace ClientLibrary.Models
 {
     public class NewFlashContentPayload
-	{
+    {
         [JsonPropertyName("new_flash_content")]
         public Content NewFlashContent { get; set; }
 
@@ -18,7 +17,7 @@ namespace ClientLibrary
         /// 结束时间，与loop_time互斥
         /// </summary>
         [JsonPropertyName("end_at")]
-        public string EndAt { get; set; }
+        public string? EndAt { get; set; }
     }
 }
 

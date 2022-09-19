@@ -19,10 +19,13 @@ namespace ClientLibrary
         private static string downloadPath = "./";
         private static readonly DownloadQueue.DownloadQueue downloadQueue = new();
         private static readonly ConcurrentDictionary<int, DownloadTask> _taskQueue = new();
-        public static DownloadTask GetOrAddTask(int id,string url,string name)
+        public static DownloadTask GetOrAddTask(int id,string url,string? name=null)
         {
             if(!_taskQueue.TryGetValue(id,out var task))
             {
+                var filename = new Uri(url).Segments.Last();
+                var ext = Path.GetExtension(filename);
+                name ??= $"{id}.{ext}";
                 task = new(id, url, name);
                 if (!task.IsComplete)
                     task.Start();
@@ -81,7 +84,7 @@ namespace ClientLibrary
                 NetTask.StartCallback = () => timer.Start();
                 NetTask.SizeCallback = o => FileSize = o;
                 NetTask.DownloadCallback = o => { DownloadSize += o; ds += o; };
-                NetTask.CompleteCallback = () => { IsComplete = true; timer.Close(); };
+                NetTask.CompleteCallback = () => { IsComplete = true; timer.Close(); CompleteCallback(this); };
                 IsComplete = File.Exists(FileName);
             }
             public int Id { get; init; }
@@ -92,6 +95,7 @@ namespace ClientLibrary
             public long DownloadSize { get; set; }
             public long DownloadSpeed { get; set; }
             public bool IsComplete { get; set; }
+            public Action<DownloadTask> CompleteCallback = o => { };
             public bool Start()
             {
                 if (_taskQueue.TryAdd(Id, this))

@@ -100,6 +100,7 @@ namespace Client_Wpf
                 page.Close();
                 _clientConnect.Close();
             };
+            _clientConnect.Conntect();
         }
         private void WiterLog(string title,string content)
         {

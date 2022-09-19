@@ -1,4 +1,5 @@
 ﻿using ClientLibrary.Models;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,18 +14,20 @@ namespace ClientLibrary.UIs
     {
         private readonly ConcurrentQueue<Models.Content> _defaultContents = new();
         private readonly ConcurrentQueue<Models.Content> _normalContents = new();
+        private readonly ConcurrentQueue<Models.NewFlashContentPayload> _newFlashContents = new();
         private readonly ConcurrentQueue<Models.Content> _emergencyContents = new();
         private readonly CancellationTokenSource cancellationTokenSource;
         private readonly IExhibition _exhibition;
+        private bool _isPlaying;
         private bool _stopPlay;
         public ExhibitionController(IExhibition exhibition)
         {
-            cancellationTokenSource = new();
             _exhibition = exhibition;
+            cancellationTokenSource = new();
         }
         public void SetExhibition()
         {
-            //AutoPlay(cancellationTokenSource.Token);
+            Task.Factory.StartNew(() => AutoPlay(cancellationTokenSource.Token), cancellationTokenSource.Token);
         }
         public void AddContent(Models.Content content)
         {
@@ -42,6 +45,10 @@ namespace ClientLibrary.UIs
                     _defaultContents.Enqueue(content);
                     break;
             }
+        }
+        public void AddNewFlashContent(Models.NewFlashContentPayload payload)
+        {
+            _newFlashContents.Enqueue(payload);
         }
         public void RemoveContent(Enums.ContentTypeEnum contentType)
         {
@@ -64,44 +71,66 @@ namespace ClientLibrary.UIs
                     _emergencyContents.Clear();
                     break;
             }
-            _stopPlay = true;
+        }
+        public void RemoveNewFlashContent(int id)
+        {
+            for (int i = 0; i < _newFlashContents.Count; i++)
+            {
+                if (_newFlashContents.TryDequeue(out var payload))
+                    if (payload.NewFlashContent != null)
+                        if (payload.NewFlashContent.Id != id)
+                            _newFlashContents.Enqueue(payload);
+            }
         }
         public void Play()
         {
-            _stopPlay = false;
-            Models.Content content;
-            if (!GetContent(_emergencyContents, out content!))
-                if (!GetContent(_normalContents, out content!))
-                    if (!GetContent(_defaultContents, out content!))
-                        return;
-            if (content != null)
+            //if (!_isPlaying)
+            //    AutoPlay();
+        }
+        public void Stop()
+        {
+            _stopPlay = true;
+            _isPlaying = false;
+        }
+        private void AutoPlay(CancellationToken token)
+        {
+            _isPlaying = true;
+            while (!token.IsCancellationRequested)
             {
-                switch (content.Material.MaterialType)
+                Models.Content content;
+                bool isEmpty;
+                if (isEmpty = !GetContent(_emergencyContents, out content!))
+                    if (isEmpty = !GetNewFlashContent(_newFlashContents, out content!))
+                        if (isEmpty = !GetContent(_normalContents, out content!))
+                            if (isEmpty = !GetContent(_defaultContents, out content!))
+                                SpinWait.SpinUntil(() => !isEmpty, 1000);
+                if (content != null)
                 {
-                    case Enums.MaterialTypeEnum.UNKNOWN_MATERIAL_TYPE:
-                        break;
-                    case Enums.MaterialTypeEnum.MATERIAL_TYPE_AUDIO:
-                        PlayAudio(content);
-                        break;
-                    case Enums.MaterialTypeEnum.MATERIAL_TYPE_VIDEO:
-                        PlayVideo(content);
-                        break;
-                    case Enums.MaterialTypeEnum.MATERIAL_TYPE_IMAGE:
-                        PlayImage(content);
-                        break;
-                    case Enums.MaterialTypeEnum.MATERIAL_TYPE_WEB:
-                        _exhibition.ShowWeb(content.Id, content.Url);
-                        break;
-                    case Enums.MaterialTypeEnum.MATERIAL_TYPE_TEXT:
-                        _exhibition.ShowText(content.Id,content.Text);
-                        break;
+                    switch (content.Material.MaterialType)
+                    {
+                        case Enums.MaterialTypeEnum.UNKNOWN_MATERIAL_TYPE:
+                            break;
+                        case Enums.MaterialTypeEnum.MATERIAL_TYPE_AUDIO:
+                            PlayAudio(content);
+                            break;
+                        case Enums.MaterialTypeEnum.MATERIAL_TYPE_VIDEO:
+                            PlayVideo(content);
+                            break;
+                        case Enums.MaterialTypeEnum.MATERIAL_TYPE_IMAGE:
+                            PlayImage(content);
+                            break;
+                        case Enums.MaterialTypeEnum.MATERIAL_TYPE_WEB:
+                            _exhibition.ShowWeb(content.Id, content.Url);
+                            break;
+                        case Enums.MaterialTypeEnum.MATERIAL_TYPE_TEXT:
+                            _exhibition.ShowText(content.Id, content.Text);
+                            break;
+                    }
+                    _ = DateTime.TryParse(content.EndedAt, out var end);
+                    SpinWait.SpinUntil(() => DateTime.Now > end || _stopPlay, content.PlayDuration * 1000);
+                    _exhibition.Hidden(content.Id);
                 }
-                _ = DateTime.TryParse(content.EndedAt, out var end);
-                SpinWait.SpinUntil(() => DateTime.Now > end || _stopPlay, content.PlayDuration * 1000);
-                _exhibition.Hidden(content.Id);
             }
-            if (!_stopPlay)
-                Play();
         }
         private void PlayAudio(Models.Content content)
         {
@@ -140,13 +169,47 @@ namespace ClientLibrary.UIs
             }
             return result;
         }
+        private static bool GetNewFlashContent(ConcurrentQueue<Models.NewFlashContentPayload> newFlashContents, out Models.Content? content)
+        {
+            var result = false;
+            content = null;
+            if (newFlashContents.TryDequeue(out var Payload))
+            {
+                content = Payload.NewFlashContent;
+                if (content != null)
+                {
+                    _ = DateTime.TryParse(content.StartedAt, out var start);
+                    _ = DateTime.TryParse(content.EndedAt, out var end);
+                    if (DateTime.Now < end)
+                    {
+                        if (DateTime.Now > start)
+                        {
+                            if (Payload.LoopTime.HasValue)
+                                if (Payload.LoopTime.Value > 0)
+                                {
+                                    Payload.LoopTime--;
+                                    result = Payload.LoopTime > 0;
+                                }
+                            if (DateTime.TryParse(Payload.EndAt, out var endtime))
+                                result = DateTime.Now < endtime;
+                        }
+                        newFlashContents.Enqueue(Payload);
+                    }
+                    else
+                    {
+                        result = GetNewFlashContent(newFlashContents, out content);
+                    }
+                }
+            }
+            return result;
+        }
         private bool MaterialDownload(Models.Material material,int timeOut ,out string materialPath)
         {
             var result = false;
             var id = material.Id;
             var name = material.Name;
             var url = material.Content;
-            var task = Downloader.GetOrAddTask(id, url, name);
+            var task = Downloader.GetOrAddTask(id, url);
             materialPath = task.FileName;
             result = SpinWait.SpinUntil(() =>
             {

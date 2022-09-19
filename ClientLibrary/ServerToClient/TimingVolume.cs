@@ -1,5 +1,5 @@
 ﻿using System;
-using SharedProject;
+using ClientLibrary.Models;
 
 namespace ClientLibrary.ServerToClient
 {

@@ -1,4 +1,5 @@
-﻿using ClientLibrary.ServerToClient;
+﻿using ClientLibrary.Models;
+using ClientLibrary.ServerToClient;
 using ClientLibrary.UIs;
 using Microsoft.VisualBasic;
 using MQTTnet;
@@ -12,7 +13,7 @@ using System.Text.Json;
 
 namespace ClientLibrary
 {
-    public class ClientConnect
+    public class ClientConnect:ClientController
     {
         private readonly string _code;
         private readonly System.Timers.Timer _timer;
@@ -24,22 +25,22 @@ namespace ClientLibrary
         {
             _UI = new(page);
             _code = config.Code;
-            _timer = new System.Timers.Timer
-            {
-                Interval = 3000,
-                AutoReset = true
-            };
-            _timer.Elapsed += (o, e) =>
-            {
-                if (_connected)
-                {
-                    ClientController.HeartBeat(new ClientToServer.HeartBeat(_code));
-                }
-                else
-                {
-                    Conntect();
-                }
-            };
+            //_timer = new System.Timers.Timer
+            //{
+            //    Interval = 3000,
+            //    AutoReset = true
+            //};
+            //_timer.Elapsed += (o, e) =>
+            //{
+            //    if (_connected)
+            //    {
+            //        ClientController.HeartBeat(new ClientToServer.HeartBeat(_code));
+            //    }
+            //    else
+            //    {
+            //        Conntect();
+            //    }
+            //};
             _client = new MqttFactory().CreateMqttClient();
             _client.ConnectingAsync += _ =>
             {
@@ -48,7 +49,7 @@ namespace ClientLibrary
             };
             _client.ConnectedAsync += _ =>
             {
-                _timer.Interval = config.HeartBeatSecond * 1000;
+                //_timer.Interval = config.HeartBeatSecond * 1000;
                 ClientController.WriteLog("Mqtt", _.ConnectResult.ResultCode.ToString());
                 Subscribe();
                 ClientController.HeartBeat(new ClientToServer.HeartBeat(_code));
@@ -66,18 +67,18 @@ namespace ClientLibrary
             {
                 ClientController.WriteLog("Mqtt", _.Reason.ToString());
                 _connected = false;
-                _timer.Interval = 3000;
+                //_timer.Interval = 3000;
                 return Task.CompletedTask;
             };
             _optionsBuilder = new MqttClientOptionsBuilder()
                 .WithWebSocketServer(config.Server)
                 .WithCredentials(config.MqttUser, config.MqttPassword);
-            ClientController.HeartBeat = o => 
+            HeartBeat = o => 
             Send(ClientToServer.TopicTypeEnum.heartbeat, JsonSerializer.Serialize(o));
-            ClientController.MaterialDownloadStatus = o => 
+            MaterialDownloadStatus = o => 
             Send(ClientToServer.TopicTypeEnum.material_download_status, JsonSerializer.Serialize(o));
-            ClientController.WriteLog = WrietLog;
-            _timer.Start();
+            WriteLog = WrietLog;
+            //_timer.Start();
         }
         public async void Conntect()
         {
@@ -104,24 +105,24 @@ namespace ClientLibrary
         }
         private void Receive(ServerToClient.TopicTypeEnum topic, string json)
         {
-            ClientController.WriteLog(topic.ToString(), json);
+            WriteLog(topic.ToString(), json);
             switch (topic)
             {
                 case ServerToClient.TopicTypeEnum.delete_material:
                     if (TryFromJson<DeleteMaterial>(json, out var deleteMaterial))
-                        ClientController.DeleteMaterial(deleteMaterial!);
+                        DeleteMaterial(deleteMaterial!);
                     break;
                 case ServerToClient.TopicTypeEnum.delete_new_flash_content:
                     if (TryFromJson<DeleteNewFlashContent>(json, out var deleteNewFlashContent))
-                        ClientController.DeleteNewFlashContent(deleteNewFlashContent!);
+                        _UI.DeleteNewFlashContent(deleteNewFlashContent!);
                     break;
                 case ServerToClient.TopicTypeEnum.material_download_url:
                     if (TryFromJson<MaterialDownloadUrl>(json, out var materialDownloadUrl))
-                        ClientController.MaterialDownloadUrl(materialDownloadUrl!);
+                        MaterialDownloadUrl(materialDownloadUrl!);
                     break;
                 case ServerToClient.TopicTypeEnum.new_flash_content:
                     if (TryFromJson<BaseContent>(json, out var newFlashContent))
-                        ClientController.NewFlashContent(newFlashContent!);
+                        _UI.NewFlashContent(newFlashContent!);
                     break;
                 case ServerToClient.TopicTypeEnum.content:
                     if (TryFromJson<BaseContent>(json, out var normalContent))
@@ -129,27 +130,38 @@ namespace ClientLibrary
                     break;
                 case ServerToClient.TopicTypeEnum.emergency_content:
                     if (TryFromJson<BaseContent>(json, out var emergencyContent))
-                        ClientController.EmergencyContent(emergencyContent!);
+                        _UI.EmergencyContent(emergencyContent!);
                     break;
                 case ServerToClient.TopicTypeEnum.timing_boot:
                     if (TryFromJson<TimingBoot>(json, out var timingBoot))
-                        ClientController.TimingBoot(timingBoot!);
+                        if (timingBoot != null)
+                            if (timingBoot.Policies != null)
+                                foreach (var policy in timingBoot.Policies)
+                                    AddTimingBootPolicy(policy);
                     break;
                 case ServerToClient.TopicTypeEnum.timing_volume:
                     if (TryFromJson<TimingVolume>(json, out var timingVolume))
-                        ClientController.TimingVolume(timingVolume!);
+                        if (timingVolume != null)
+                            if (timingVolume.Policies != null)
+                                foreach (var policy in timingVolume.Policies)
+                                    AddTimingVolumePolicy(policy);
                     break;
             }
         }
         private async void Send(ClientToServer.TopicTypeEnum topic, string json)
         {
-            await _client.PublishStringAsync(topic.ToString(), json);
+            if (_connected)
+                await _client.PublishStringAsync(topic.ToString(), json);
+            else
+                Conntect();
             //ClientController.WriteLog(topic.ToString(), json);
         }
         private static void WrietLog(string title, string content)
         {
-            if (!Directory.Exists("./log/")) Directory.CreateDirectory("./log/");
-            File.WriteAllText($"./log/{title}-{DateTime.Now.Ticks}.json", content);
+            var path = $"./log/{DateTime.Now:M}/";
+            var text = $"\n{DateTime.Now}\n{content}\r";
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            File.AppendAllText($"{path}{title}.txt", text);
             Console.WriteLine($"{DateTime.Now}\t[{title}]\t{content}");
         }
         private bool TryFromJson<T>(string json,out T? result)where T:Topic

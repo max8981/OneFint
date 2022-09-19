@@ -1,6 +1,4 @@
-﻿using SharedProject;
-
-namespace ClientLibrary.ServerToClient
+﻿namespace ClientLibrary.ServerToClient
 {
     /// <summary>
     /// 定时启动
@@ -11,6 +9,6 @@ namespace ClientLibrary.ServerToClient
         /// 启动策略列表
         /// </summary>
         [JsonPropertyName("policies")]
-        public TimingBootPolicy[] Policies { get; set; }
+        public Models.TimingBootPolicy[] Policies { get; set; }
     }
 }
