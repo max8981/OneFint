@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using ClientLibrary.Models;
-
-namespace ClientLibrary.ServerToClient
+﻿namespace ClientLibrary.ServerToClient
 {
     public partial class DeleteNewFlashContent:Topic
     {
@@ -9,6 +6,6 @@ namespace ClientLibrary.ServerToClient
         /// 待删除的插播内容
         /// </summary>
         [JsonPropertyName("new_flash_contents")]
-        public Content[] NewFlashContents { get; set; }
+        public Models.Content[]? NewFlashContents { get; set; }
     }
 }

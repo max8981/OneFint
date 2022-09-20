@@ -18,7 +18,6 @@ namespace ClientLibrary.UIs
         private readonly ConcurrentQueue<Models.Content> _emergencyContents = new();
         private readonly CancellationTokenSource cancellationTokenSource;
         private readonly IExhibition _exhibition;
-        private bool _isPlaying;
         private bool _stopPlay;
         public ExhibitionController(IExhibition exhibition)
         {
@@ -71,6 +70,7 @@ namespace ClientLibrary.UIs
                     _emergencyContents.Clear();
                     break;
             }
+            Stop();
         }
         public void RemoveNewFlashContent(int id)
         {
@@ -82,21 +82,13 @@ namespace ClientLibrary.UIs
                             _newFlashContents.Enqueue(payload);
             }
         }
-        public void Play()
-        {
-            //if (!_isPlaying)
-            //    AutoPlay();
-        }
-        public void Stop()
-        {
-            _stopPlay = true;
-            _isPlaying = false;
-        }
+        public void PLay() => _stopPlay = false;
+        public void Stop() => _stopPlay = true;
         private void AutoPlay(CancellationToken token)
         {
-            _isPlaying = true;
             while (!token.IsCancellationRequested)
             {
+                _stopPlay = false;
                 Models.Content content;
                 bool isEmpty;
                 if (isEmpty = !GetContent(_emergencyContents, out content!))
@@ -104,7 +96,7 @@ namespace ClientLibrary.UIs
                         if (isEmpty = !GetContent(_normalContents, out content!))
                             if (isEmpty = !GetContent(_defaultContents, out content!))
                                 SpinWait.SpinUntil(() => !isEmpty, 1000);
-                if (content != null)
+                if (content != null&&content.Material!=null)
                 {
                     switch (content.Material.MaterialType)
                     {
@@ -134,18 +126,21 @@ namespace ClientLibrary.UIs
         }
         private void PlayAudio(Models.Content content)
         {
-            if (MaterialDownload(content.Material, content.PlayDuration, out var material))
-                _exhibition.ShowAudio(content.Id, material);
+            if(content.Material!=null)
+                if (MaterialDownload(content.Material, content.PlayDuration, out var material))
+                    _exhibition.ShowAudio(content.Id, material);
         }
         private void PlayVideo(Models.Content content)
         {
-            if (MaterialDownload(content.Material, content.PlayDuration, out var material))
-                _exhibition.ShowVideo(content.Id, material, content.Mute);
+            if (content.Material != null)
+                if (MaterialDownload(content.Material, content.PlayDuration, out var material))
+                    _exhibition.ShowVideo(content.Id, material, content.Mute);
         }
         private void PlayImage(Models.Content content)
         {
-            if (MaterialDownload(content.Material, content.PlayDuration, out var material))
-                _exhibition.ShowImage(content.Id, material);
+            if (content.Material != null)
+                if (MaterialDownload(content.Material, content.PlayDuration, out var material))
+                    _exhibition.ShowImage(content.Id, material);
         }
         private static bool GetContent(ConcurrentQueue<Models.Content> contents,out Models.Content? content)
         {
@@ -207,18 +202,16 @@ namespace ClientLibrary.UIs
         {
             var result = false;
             var id = material.Id;
-            var name = material.Name;
+            var name = material.Name??"";
             var url = material.Content;
-            var task = Downloader.GetOrAddTask(id, url);
+            var task = Downloader.GetOrAddTask(id, url!);
             materialPath = task.FileName;
             result = SpinWait.SpinUntil(() =>
             {
                 if (!task.IsComplete)
                 {
-                    var d = task.DownloadSize;
-                    var t = task.FileSize;
-                    var s = Downloader.GetByteString(task.DownloadSpeed);
-                    _exhibition.ShowDownload(id, name, $"{s}/s", d / t);
+                    var speed = Downloader.GetByteString(task.DownloadSpeed);
+                    _exhibition.ShowDownload(id, name, $"{speed}/s", task.Progress);
                 }
                 return task.IsComplete;
             }, timeOut * 1000);

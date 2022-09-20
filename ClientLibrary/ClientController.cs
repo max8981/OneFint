@@ -12,12 +12,10 @@ namespace ClientLibrary
     {
         const string CODE = "max01";
         private readonly System.Timers.Timer _timer;
-        private readonly ConcurrentDictionary<int, Models.TimingBootPolicy> _timingBoots;
-        private readonly ConcurrentDictionary<int, Models.TimingVolumePolicy> _timingVolumes;
+        private static readonly ConcurrentDictionary<int, Models.TimingBootPolicy> _timingBoots = new();
+        private static readonly ConcurrentDictionary<int, Models.TimingVolumePolicy> _timingVolumes = new();
         public ClientController()
         {
-            _timingBoots = new();
-            _timingVolumes = new();
             _timer = new(1000) { AutoReset = true };
             _timer.Elapsed += (o, e) =>
             {
@@ -29,41 +27,47 @@ namespace ClientLibrary
             };
             _timer.Start();
         }
-        internal void DeleteMaterial(ServerToClient.DeleteMaterial delete)
+        internal static void DeleteMaterial(ServerToClient.DeleteMaterial delete)
         {
-            foreach (var material in delete.Materials)
-            {
-                var id = material.Id;
-                var ext = Path.GetExtension(new Uri(material.Content).Segments.Last());
-                var file = $"{id}.{ext}";
-                try
-                {
-                    System.IO.File.Delete(file);
-                }
-                catch(Exception ex)
-                {
-                    WriteLog("DeleteMaterial", ex.Message);
-                }
-            }
+            if(delete.Materials!=null)
+                foreach (var material in delete.Materials)
+                    if (material.Content != null)
+                    {
+                        var uri = new Uri(material.Content);
+                        var id = material.Id;
+                        var ext = Path.GetExtension(uri.Segments.Last());
+                        var file = $"{id}.{ext}"; 
+                        try
+                        {
+                            System.IO.File.Delete(file);
+                        }
+                        catch (Exception ex)
+                        {
+                            WriteLog("DeleteMaterial", ex.Message);
+                        }
+                    }
         }
-        internal void MaterialDownload(ServerToClient.MaterialDownloadUrl material)
+        internal static void MaterialDownloadUrl(ServerToClient.MaterialDownloadUrl material)
         {
             var id = material.ContentId;
             var deviceId = material.DeviceId;
             var deviceGroupId = material.DeviceGroupId;
-            var url = material.Url;
-            var task = Downloader.GetOrAddTask(id, url);
-            task.CompleteCallback += o => MaterialDownloadStatus(new ClientToServer.MaterialDownloadStatus(id, true, deviceId, deviceGroupId));
+            if (!string.IsNullOrEmpty(material.Url))
+            {
+                var url = material.Url;
+                var task = Downloader.GetOrAddTask(id, url);
+                task.CompleteCallback += o => MaterialDownloadStatus(new ClientToServer.MaterialDownloadStatus(id, true, deviceId, deviceGroupId));
+            }
         }
-        internal void AddTimingBootPolicy(Models.TimingBootPolicy policy)
+        internal static void AddTimingBootPolicy(Models.TimingBootPolicy policy)
         {
             _timingBoots.TryAdd(policy.Id, policy);
         }
-        internal void AddTimingVolumePolicy(Models.TimingVolumePolicy policy)
+        internal static void AddTimingVolumePolicy(Models.TimingVolumePolicy policy)
         {
             _timingVolumes.TryAdd(policy.Id, policy);
         }
-        private void TimingBoot(DateTime now)
+        private static void TimingBoot(DateTime now)
         {
             foreach (var timingboot in _timingBoots.Values)
             {
@@ -94,7 +98,7 @@ namespace ClientLibrary
                 }
             }
         }
-        private void TimingVolume(DateTime now)
+        private static void TimingVolume(DateTime now)
         {
             foreach (var timingVolume in _timingVolumes.Values)
             {
@@ -117,11 +121,6 @@ namespace ClientLibrary
         public static Action Save { get; set; } = () => { };
         public static Action Load { get; set; } = () => { };
         public static Action<string,string> WriteLog { get; set; } = (t,c) => { };
-        public static Action<DeleteNewFlashContent> DeleteNewFlashContent { get; set; } = o => { };
-        public static Func<MaterialDownloadUrl, bool> MaterialDownloadUrl { get; set; } = o => { return false; };
-        public static Action<BaseContent> NewFlashContent { get; set; } = o => { };
-        public static Action<BaseContent> NormalAndDefaultContent { get; set; } = o => { };
-        public static Action<BaseContent> EmergencyContent { get; set; } = o => { };
         public static Action<HeartBeat> HeartBeat { get; set; } = o => { };
         public static Action<MaterialDownloadStatus> MaterialDownloadStatus { get; set; } = o => { };
         ~ClientController()

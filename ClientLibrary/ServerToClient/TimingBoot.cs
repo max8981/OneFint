@@ -9,6 +9,6 @@
         /// 启动策略列表
         /// </summary>
         [JsonPropertyName("policies")]
-        public Models.TimingBootPolicy[] Policies { get; set; }
+        public Models.TimingBootPolicy[]? Policies { get; set; }
     }
 }

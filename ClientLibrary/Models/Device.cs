@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace ClientLibrary.Models
+﻿namespace ClientLibrary.Models
 {
     /// <summary>
     /// 设备
     /// </summary>
-    public partial class Device
+    public partial class Device:BaseDateAt
     {
         /// <summary>
         /// 设备ID
@@ -16,17 +14,17 @@ namespace ClientLibrary.Models
         /// 设备编码
         /// </summary>
         [JsonPropertyName("code")]
-        public string Code { get; set; }
+        public string? Code { get; set; }
         /// <summary>
         /// 设备名称
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         /// <summary>
         /// 设备组
         /// </summary>
         [JsonPropertyName("device_group")]
-        public DeviceGroup DeviceGroup { get; set; }
+        public DeviceGroup? DeviceGroup { get; set; }
         /// <summary>
         /// 分辨率X
         /// </summary>
@@ -41,29 +39,29 @@ namespace ClientLibrary.Models
         /// 所在地区
         /// </summary>
         [JsonPropertyName("location")]
-        public string Location { get; set; }
+        public string? Location { get; set; }
         /// <summary>
         /// 详细地址
         /// </summary>
         [JsonPropertyName("address")]
-        public string Address { get; set; }
+        public string? Address { get; set; }
         [JsonPropertyName("owner")]
-        public Owner Owner { get; set; }
+        public Owner? Owner { get; set; }
         /// <summary>
         /// 布局
         /// </summary>
         [JsonPropertyName("layout")]
-        public Layout Layout { get; set; }
+        public Layout? Layout { get; set; }
         /// <summary>
         /// 硬件厂商
         /// </summary>
         [JsonPropertyName("hardware")]
-        public Hardware Hardware { get; set; }
+        public Hardware? Hardware { get; set; }
         /// <summary>
         /// 设备预览
         /// </summary>
         [JsonPropertyName("preview_url")]
-        public string PreviewUrl { get; set; }
+        public string? PreviewUrl { get; set; }
         /// <summary>
         /// 设备状态：0：UNKNOWN_DEVICE_STATUS；1：ONLINE；2：VIDEO；3：TEXT
         /// </summary>
@@ -78,13 +76,7 @@ namespace ClientLibrary.Models
         /// 设备信息
         /// </summary>
         [JsonPropertyName("machine_info")]
-        public MachineInfo MachineInfo { get; set; }
-        [JsonPropertyName("created_at")]
-        public string CreatedAt { get; set; }
-        [JsonPropertyName("updated_at")]
-        public string UpdatedAt { get; set; }
-
-
+        public MachineInfo? MachineInfo { get; set; }
     }
 }
 

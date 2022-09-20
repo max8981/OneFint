@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace ClientLibrary.Models
+﻿namespace ClientLibrary.Models
 {
     /// <summary>
     /// 设备组
     /// </summary>
-    public class DeviceGroup
+    public class DeviceGroup:BaseDateAt
     {
         /// <summary>
         /// 设备组ID
@@ -16,7 +14,7 @@ namespace ClientLibrary.Models
         /// 设备组name
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         /// <summary>
         /// 设备总数
         /// </summary>
@@ -33,16 +31,12 @@ namespace ClientLibrary.Models
         [JsonPropertyName("offline")]
         public int Offline { get; set; }
         [JsonPropertyName("devices")]
-        public object Devices { get; set; }
+        public object? Devices { get; set; }
         /// <summary>
         /// 布局
         /// </summary>
         [JsonPropertyName("layout")]
-        public Layout Layout { get; set; }
-        [JsonPropertyName("created_at")]
-        public string CreatedAt { get; set; }
-        [JsonPropertyName("updated_at")]
-        public string UpdatedAt { get; set; }
+        public Layout? Layout { get; set; }
     }
 }
 

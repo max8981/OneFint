@@ -1,12 +1,9 @@
-﻿using System;
-using ClientLibrary.Models;
-
-namespace ClientLibrary.ServerToClient
+﻿namespace ClientLibrary.ServerToClient
 {
     public class DeleteMaterial:Topic
     {
         [JsonPropertyName("device_id")]
-        public decimal? DeviceId { get; set; }
+        public int DeviceId { get; set; }
 
         /// <summary>
         /// 是否删除所有素材
@@ -15,7 +12,7 @@ namespace ClientLibrary.ServerToClient
         public bool DeleteAll { get; set; }
 
         [JsonPropertyName("materials")]
-        public Material[] Materials { get; set; }
+        public Models.Material[]? Materials { get; set; }
     }
 }
 

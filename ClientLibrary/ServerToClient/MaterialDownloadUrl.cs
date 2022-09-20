@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using SharedProject;
-
-namespace ClientLibrary.ServerToClient
+﻿namespace ClientLibrary.ServerToClient
 {
     public class MaterialDownloadUrl : Topic
     {
@@ -27,6 +24,6 @@ namespace ClientLibrary.ServerToClient
         /// 下载地址
         /// </summary>
         [JsonPropertyName("url")]
-        public string Url { get; set; }
+        public string? Url { get; set; }
     }
 }

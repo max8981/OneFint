@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace ClientLibrary.Models
+﻿namespace ClientLibrary.Models
 {
     public class NewFlashContentPayload
     {
         [JsonPropertyName("new_flash_content")]
-        public Content NewFlashContent { get; set; }
+        public Content? NewFlashContent { get; set; }
 
         /// <summary>
         /// 循环次数，与end_at互斥

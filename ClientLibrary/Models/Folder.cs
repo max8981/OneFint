@@ -14,7 +14,7 @@ namespace ClientLibrary.Models
         /// 目录名称
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// 父ID

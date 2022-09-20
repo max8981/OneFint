@@ -10,6 +10,11 @@
     <PackageReference Include="DownloadQueue" Version="2.0.0" />
     <PackageReference Include="MQTTnet" Version="4.1.0.247" />
     <PackageReference Include="System.Management" Version="6.0.0" />
+	  <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebServer\WebServer.csproj" />
   </ItemGroup>
 
 </Project>

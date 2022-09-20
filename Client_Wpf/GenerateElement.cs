@@ -124,7 +124,7 @@ namespace Client_Wpf
                                 Mute = content.Mute,
                                 Id = content.Id,
                                 MediaType = GetMediaType((int)content.Material.MaterialType),
-                                Text = content.Text.Text,
+                                Text = content.Text.Text??"",
                                 FontSize = GetFontSize(content.Text.FontSize),
                                 FontColor = content.Text.FontColor,
                                 BackRound = content.Text.BackgroundColor,
@@ -144,7 +144,7 @@ namespace Client_Wpf
                                     media.Source = content.Url;
                                     break;
                                 default:
-                                    media.Source = content.Text.Text;
+                                    media.Source = content.Text.Text ?? "";
                                     break;
                             }
                             exhibition.AddContent(typeGroup.Key, media);

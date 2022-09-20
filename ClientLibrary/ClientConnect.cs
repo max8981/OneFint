@@ -16,7 +16,6 @@ namespace ClientLibrary
     public class ClientConnect:ClientController
     {
         private readonly string _code;
-        private readonly System.Timers.Timer _timer;
         private readonly IMqttClient _client;
         private readonly MqttClientOptionsBuilder _optionsBuilder;
         private readonly UIController _UI;
@@ -25,34 +24,17 @@ namespace ClientLibrary
         {
             _UI = new(page);
             _code = config.Code;
-            //_timer = new System.Timers.Timer
-            //{
-            //    Interval = 3000,
-            //    AutoReset = true
-            //};
-            //_timer.Elapsed += (o, e) =>
-            //{
-            //    if (_connected)
-            //    {
-            //        ClientController.HeartBeat(new ClientToServer.HeartBeat(_code));
-            //    }
-            //    else
-            //    {
-            //        Conntect();
-            //    }
-            //};
             _client = new MqttFactory().CreateMqttClient();
             _client.ConnectingAsync += _ =>
             {
-                ClientController.WriteLog("Mqtt", "Connecting");
+                WriteLog("Mqtt", "Connecting");
                 return Task.CompletedTask;
             };
             _client.ConnectedAsync += _ =>
             {
-                //_timer.Interval = config.HeartBeatSecond * 1000;
-                ClientController.WriteLog("Mqtt", _.ConnectResult.ResultCode.ToString());
+                WriteLog("Mqtt", _.ConnectResult.ResultCode.ToString());
                 Subscribe();
-                ClientController.HeartBeat(new ClientToServer.HeartBeat(_code));
+                HeartBeat(new ClientToServer.HeartBeat(_code));
                 _connected = true;
                 return Task.CompletedTask;
             };
@@ -67,7 +49,6 @@ namespace ClientLibrary
             {
                 ClientController.WriteLog("Mqtt", _.Reason.ToString());
                 _connected = false;
-                //_timer.Interval = 3000;
                 return Task.CompletedTask;
             };
             _optionsBuilder = new MqttClientOptionsBuilder()
@@ -78,7 +59,8 @@ namespace ClientLibrary
             MaterialDownloadStatus = o => 
             Send(ClientToServer.TopicTypeEnum.material_download_status, JsonSerializer.Serialize(o));
             WriteLog = WrietLog;
-            //_timer.Start();
+            //Task.Factory.StartNew(() => Web.WebServer.Start(Array.Empty<string>()));
+            Task.Factory.StartNew(() => WebServer.Program.Main(Array.Empty<string>()));
         }
         public async void Conntect()
         {
@@ -93,7 +75,6 @@ namespace ClientLibrary
         }
         public void Close()
         {
-            _timer.Close();
             _client.Dispose();
         }
         private async void Subscribe()

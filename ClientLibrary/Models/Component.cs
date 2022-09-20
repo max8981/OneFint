@@ -13,12 +13,12 @@ namespace ClientLibrary.Models
         /// 组件UUID
         /// </summary>
         [JsonPropertyName("uuid")]
-        public string Uuid { get; set; }
+        public Guid Uuid { get; set; }
         /// <summary>
         /// 组件name
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         /// <summary>
         /// 左边距
         /// </summary>
@@ -58,7 +58,7 @@ namespace ClientLibrary.Models
         [JsonPropertyName("interchange_effect")]
         public Enums.InterchangeEffectEnum InterchangeEffect { get; set; }
         [JsonPropertyName("text")]
-        public BaseText Text { get; set; }
+        public BaseText? Text { get; set; }
         /// <summary>
         /// 时钟类型，可选0，1，2；0: UNKNOWN_CLOCK_TYPE; 1: TYPE_1; 2: TYPE_2
         /// </summary>
@@ -68,12 +68,12 @@ namespace ClientLibrary.Models
         /// 字体颜色
         /// </summary>
         [JsonPropertyName("font_color")]
-        public string FontColor { get; set; }
+        public string? FontColor { get; set; }
         /// <summary>
         /// 背景色
         /// </summary>
         [JsonPropertyName("background_color")]
-        public string BackgroundColor { get; set; }
+        public string? BackgroundColor { get; set; }
         /// <summary>
         /// 字体透明度
         /// </summary>
@@ -83,7 +83,7 @@ namespace ClientLibrary.Models
         /// 垫片
         /// </summary>
         [JsonPropertyName("pad_url")]
-        public string PadUrl { get; set; }
+        public string? PadUrl { get; set; }
     }
 }
 

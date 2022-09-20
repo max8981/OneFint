@@ -1,30 +1,13 @@
-﻿using Client_Wpf.CustomControls;
-using ClientLibrary;
+﻿using ClientLibrary;
 using CoreAudio;
 using Microsoft.Win32.SafeHandles;
-using SharedProject;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Timers;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Client_Wpf
 {
@@ -55,9 +38,7 @@ namespace Client_Wpf
             _playbackDevice = new MMDeviceEnumerator().GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eMultimedia);
             _currentMonitor = DisplayController.GetCurrentMonitor();
             _MONITORs= DisplayController.GetPhysicalMonitors(_currentMonitor);
-            ClientLibrary.ClientController.WriteLog = WiterLog;
-            ClientController.NormalAndDefaultContent = o => GenerateElement.Normal(o);
-            ClientController.EmergencyContent = o => GenerateElement.Emergenyc(o);
+            ClientController.WriteLog = WiterLog;
             ClientController.ScreenPowerOff = o => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2);
             ClientController.ScreenPowerOn = o => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, -1);
             ClientController.SetVolume = o =>
@@ -78,8 +59,6 @@ namespace Client_Wpf
                     DisplayController.SetMonitorBrightness(monitor, o / 100f);
                 }
             };
-            var info = new ClientLibrary.Information();
-            var infoview = new CustomControls.InformationControl(new string[] { info.DiskSize });
 
             var page = new PageView();
             page.Activated += (o, e) => ShowCursor(0);
@@ -128,7 +107,7 @@ namespace Client_Wpf
         }
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            GenerateElement.Show();
+
         }
     }
 }

@@ -1,18 +1,12 @@
-﻿using System;
-using ClientLibrary.Models;
-
-namespace ClientLibrary.ServerToClient
+﻿namespace ClientLibrary.ServerToClient
 {
-    /// <summary>
-    /// title
-    /// </summary>
     public partial class TimingVolume : Topic
     {
         /// <summary>
         /// 启动策略列表
         /// </summary>
         [JsonPropertyName("policies")]
-        public TimingVolumePolicy[] Policies { get; set; }
+        public Models.TimingVolumePolicy[]? Policies { get; set; }
     }
 }
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ClientLibrary.Models
+﻿namespace ClientLibrary.Models
 {
     public class Page
     {
@@ -10,14 +8,14 @@ namespace ClientLibrary.Models
         /// UUID唯一
         /// </summary>
         [JsonPropertyName("uuid")]
-        public string Uuid { get; set; }
+        public Guid Uuid { get; set; }
         /// <summary>
         /// 页面名称
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [JsonPropertyName("components")]
-        public Component[] Components { get; set; }
+        public Component[]? Components { get; set; }
         /// <summary>
         /// 是否跳转
         /// </summary>
@@ -32,7 +30,7 @@ namespace ClientLibrary.Models
         /// 跳转至
         /// </summary>
         [JsonPropertyName("skip_to")]
-        public string SkipTo { get; set; }
+        public string? SkipTo { get; set; }
     }
 }
 

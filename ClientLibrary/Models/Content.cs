@@ -13,34 +13,34 @@ namespace ClientLibrary.Models
         /// 内容名称
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         /// <summary>
         /// 设备
         /// </summary>
         [JsonPropertyName("device")]
-        public Device Device { get; set; }
+        public Device? Device { get; set; }
         /// <summary>
         /// 设备组
         /// </summary>
         [JsonPropertyName("device_group")]
-        public DeviceGroup DeviceGroup { get; set; }
+        public DeviceGroup? DeviceGroup { get; set; }
         [JsonPropertyName("component")]
-        public Component Component { get; set; }
+        public Component? Component { get; set; }
         /// <summary>
         /// 网址
         /// </summary>
         [JsonPropertyName("url")]
-        public string Url { get; set; }
+        public string? Url { get; set; }
         /// <summary>
         /// 文本
         /// </summary>
         [JsonPropertyName("text")]
-        public BaseText Text { get; set; }
+        public BaseText? Text { get; set; }
         /// <summary>
         /// 素材
         /// </summary>
         [JsonPropertyName("material")]
-        public Material Material { get; set; }
+        public Material? Material { get; set; }
         /// <summary>
         /// 内容状态；0：UNKNOWN_CONTENT_STATUS；1：TO_REVIEW；2：REVIEW_FAIL；3：PLAYING；4：TO_PLAY; 5: EXPIRED
         /// </summary>
@@ -60,17 +60,17 @@ namespace ClientLibrary.Models
         /// 校验时间
         /// </summary>
         [JsonPropertyName("verified_at")]
-        public string VerifiedAt { get; set; }
+        public string? VerifiedAt { get; set; }
         /// <summary>
         /// 开始投放时间
         /// </summary>
         [JsonPropertyName("started_at")]
-        public string StartedAt { get; set; }
+        public string? StartedAt { get; set; }
         /// <summary>
         /// 投放结束时间
         /// </summary>
         [JsonPropertyName("ended_at")]
-        public string EndedAt { get; set; }
+        public string? EndedAt { get; set; }
         /// <summary>
         /// 播放时间
         /// </summary>
@@ -91,9 +91,6 @@ namespace ClientLibrary.Models
         /// </summary>
         [JsonPropertyName("order")]
         public int Order { get; set; }
-
-
-
     }
 }
 

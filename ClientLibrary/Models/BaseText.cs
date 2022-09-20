@@ -8,23 +8,23 @@ namespace ClientLibrary.Models
         /// 文本，或网址
         /// </summary>
         [JsonPropertyName("text")]
-        public string Text { get; set; }
+        public string? Text { get; set; }
         /// <summary>
         /// 背景色
         /// </summary>
         [JsonPropertyName("background_color")]
-        public string BackgroundColor { get; set; }
+        public string? BackgroundColor { get; set; }
 
         /// <summary>
         /// 字体颜色
         /// </summary>
         [JsonPropertyName("font_color")]
-        public string FontColor { get; set; }
+        public string? FontColor { get; set; }
         /// <summary>
         /// 字体大小
         /// </summary>
         [JsonPropertyName("font_size")]
-        public int? FontSize { get; set; }
+        public int FontSize { get; set; }
 
         /// <summary>
         /// 文本水平位置，可选0,1,2,3; 0：UNKNOWN_CONTENT_TEXT_HORIZONTAL_POSITION；1: LEFT; 2: CENTER; 3: RIGHT;

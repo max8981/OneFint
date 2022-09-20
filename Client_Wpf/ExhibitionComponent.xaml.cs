@@ -1,31 +1,12 @@
-﻿using Client_Wpf.CustomControls;
-using ClientLibrary;
-using ClientLibrary.Enums;
+﻿using ClientLibrary.Enums;
 using ClientLibrary.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using static ClientLibrary.Downloader;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
-using System.Threading;
-using ClientLibrary.UIs;
 using System.Reflection;
-using System.Drawing;
-using System.Security.Policy;
-using System.Timers;
 
 namespace Client_Wpf
 {
@@ -87,28 +68,31 @@ namespace Client_Wpf
             });
         }
 
-        public void ShowClock(int id, BaseText text, ClockTypeEnum clockType)
+        public void ShowClock(int id, BaseText? text, ClockTypeEnum clockType)
         {
             const string clockType1 = "yyyy-MM-dd ddd HH:mm:ss";
             const string clockType2 = "HH:mm:ss\nyyyy-MM-dd ddd";
-            text.Horizontal = (HorizontalEnum)2;
-            text.Vertical = (VerticalEnum)2;
-            var _clockFormat = clockType switch
+            if (text != null)
             {
-                ClockTypeEnum.TYPE_1=>clockType1,
-                ClockTypeEnum.TYPE_2=>clockType2,
-                _ => "",
-            };
-            System.Timers.Timer timer = new()
-            {
-                AutoReset = true,
-                Interval = 1000
-            };
-            timer.Elapsed += (o, e) => {
-                text.Text = e.SignalTime.ToString(_clockFormat);
-                ShowText(id, text);
-            };
-            timer.Start();
+                text.Horizontal = (HorizontalEnum)2;
+                text.Vertical = (VerticalEnum)2;
+                var _clockFormat = clockType switch
+                {
+                    ClockTypeEnum.TYPE_1 => clockType1,
+                    ClockTypeEnum.TYPE_2 => clockType2,
+                    _ => "",
+                };
+                System.Timers.Timer timer = new()
+                {
+                    AutoReset = true,
+                    Interval = 1000
+                };
+                timer.Elapsed += (o, e) => {
+                    text.Text = e.SignalTime.ToString(_clockFormat);
+                    ShowText(id, text);
+                };
+                timer.Start();
+            }
         }
         public void ShowDownload(int id, string title, string content, float progress)
         {
@@ -148,31 +132,32 @@ namespace Client_Wpf
             });
         }
 
-        public void ShowText(int id, BaseText text)
+        public void ShowText(int id, BaseText? text)
         {
             var name = $"text{id}";
-            Dispatcher.Invoke(() =>
-            {
-                if (grid.FindName(name) is not TextBlock textBlock)
+            if(text!=null)
+                Dispatcher.Invoke(() =>
                 {
-                    textBlock = new TextBlock
+                    if (grid.FindName(name) is not TextBlock textBlock)
                     {
-                        Name = name,
-                        Margin = new Thickness(0, 0, 0, 0),
-                    };
-                    grid.Children.Add(textBlock);
-                    grid.RegisterName(name, textBlock);
-                    _elements.Add(id, textBlock);
-                }
-                textBlock.Text = text.Text;
-                textBlock.FontSize = GetFontSize(text.FontSize);
-                textBlock.Foreground = GetBrush(text.FontColor);
-                textBlock.Background = GetBrush(text.BackgroundColor);
-                textBlock.TextAlignment = GetTextAlignment((int)text.Horizontal);
-                textBlock.HorizontalAlignment = GetHorizontal((int)text.Horizontal);
-                textBlock.VerticalAlignment = GetVertical((int)text.Vertical);
-                grid.Background = GetBrush(text.BackgroundColor);
-            });
+                        textBlock = new TextBlock
+                        {
+                            Name = name,
+                            Margin = new Thickness(0, 0, 0, 0),
+                        };
+                        grid.Children.Add(textBlock);
+                        grid.RegisterName(name, textBlock);
+                        _elements.Add(id, textBlock);
+                    }
+                    textBlock.Text = text.Text;
+                    textBlock.FontSize = GetFontSize(text.FontSize);
+                    textBlock.Foreground = GetBrush(text.FontColor);
+                    textBlock.Background = GetBrush(text.BackgroundColor);
+                    textBlock.TextAlignment = GetTextAlignment((int)text.Horizontal);
+                    textBlock.HorizontalAlignment = GetHorizontal((int)text.Horizontal);
+                    textBlock.VerticalAlignment = GetVertical((int)text.Vertical);
+                    grid.Background = GetBrush(text.BackgroundColor);
+                });
         }
 
         public void ShowVideo(int id,string source,bool mute)
@@ -211,7 +196,7 @@ namespace Client_Wpf
             });
         }
 
-        public void ShowWeb(int id,string url)
+        public void ShowWeb(int id,string? url)
         {
             Dispatcher.BeginInvoke(() =>
             {
@@ -245,7 +230,7 @@ namespace Client_Wpf
                 }
             });
         }
-        private static Brush? GetBrush(string colorString)
+        private static Brush? GetBrush(string? colorString)
         {
             if (string.IsNullOrEmpty(colorString))
             {

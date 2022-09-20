@@ -1,7 +1,4 @@
-﻿using System;
-using ClientLibrary.Models;
-
-namespace ClientLibrary.Models
+﻿namespace ClientLibrary.Models
 {
     public class Layout:BaseDateAt
 	{
@@ -14,7 +11,7 @@ namespace ClientLibrary.Models
         /// 布局名称
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         /// <summary>
         /// 布局宽度
         /// </summary>
@@ -26,7 +23,7 @@ namespace ClientLibrary.Models
         [JsonPropertyName("height")]
         public int Height { get; set; }
         [JsonPropertyName("content")]
-        public LayoutContent Content { get; set; }
+        public LayoutContent? Content { get; set; }
     }
 }
 

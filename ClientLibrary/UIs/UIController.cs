@@ -41,29 +41,28 @@ namespace ClientLibrary.UIs
         {
             SetLayout(baseContent.Layout);
             if (baseContent.NewFlashContentPayloads != null)
-            foreach (var newFlash in baseContent.NewFlashContentPayloads)
-            {
-                    var componentId = newFlash.NewFlashContent.Component.Id;
-                    _exhibitions[componentId].AddNewFlashContent(newFlash);
-                    _exhibitions[componentId].Play();
-            }
+                foreach (var newFlash in baseContent.NewFlashContentPayloads)
+                    if (newFlash.NewFlashContent != null && newFlash.NewFlashContent.Component != null)
+                        _exhibitions[newFlash.NewFlashContent.Component.Id].AddNewFlashContent(newFlash);
         }
         public void DeleteNewFlashContent(DeleteNewFlashContent deleteNewFlash)
         {
-            foreach (var content in deleteNewFlash.NewFlashContents)
-            {
-                var id = content.Id;
-                var componentId = content.Component.Id;
-                _exhibitions[componentId].RemoveNewFlashContent(id);
-            }
+            if (deleteNewFlash.NewFlashContents != null)
+                foreach (var content in deleteNewFlash.NewFlashContents)
+                    if (content.Component != null)
+                    {
+                        var id = content.Id;
+                        var componentId = content.Component.Id;
+                        _exhibitions[componentId].RemoveNewFlashContent(id);
+                    }
         }
-        private void SetLayout(Models.Layout layout)
+        private void SetLayout(Models.Layout? layout)
         {
-            var components = layout.Content.Pages.First().Components;
-            foreach (var component in components)
-            {
-                AddComponent(component);
-            }
+            if(layout!=null&&layout.Content!=null&&layout.Content.Pages!=null)
+                foreach (var page in layout.Content.Pages)
+                    if (page.Components != null)
+                        foreach (var component in page.Components)
+                            AddComponent(component);
         }
         private void AddComponent(Models.Component component)
         {
@@ -83,7 +82,7 @@ namespace ClientLibrary.UIs
                 case Enums.ComponentTypeEnum.IMAGE:
                     break;
                 case Enums.ComponentTypeEnum.BROWSER:
-                    exhibition.ShowWeb(component.Id, component.Text.Text);
+                    exhibition.ShowWeb(component.Id, component.Text?.Text);
                     break;
                 case Enums.ComponentTypeEnum.TEXT:
                     exhibition.ShowText(component.Id, component.Text);
@@ -103,15 +102,11 @@ namespace ClientLibrary.UIs
         {
             if (contents != null)
             {
-                var group = contents.GroupBy(_ => _.Component.Id).ToArray();
+                var group = contents.GroupBy(_ => _.Component?.Id).ToArray();
                 foreach (var item in group)
-                {
                     foreach (var content in item)
-                    {
-                        _exhibitions[item.Key].AddContent(content);
-                    }
-                    _exhibitions[item.Key].Play();
-                }
+                        if (item.Key.HasValue)
+                            _exhibitions[item.Key.Value].AddContent(content);
             }
         }
     }
