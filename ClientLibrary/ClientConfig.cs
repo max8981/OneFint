@@ -8,11 +8,21 @@ namespace ClientLibrary
 {
     public class ClientConfig
     {
-        public string Code { get; set; } = "max01";
-        public string Server { get; set; } = "ws://47.101.178.160:8083/mqtt";
-        public string MqttUser { get; set; } = "admin";
-        public string MqttPassword { get; set; } = "public";
-        public int HeartBeatSecond { get; set; } = 10;
-        public string DownloadPath { get; set; } = "./";
+        public ClientConfig()
+        {
+            Code = "max01";
+            Server = "ws://47.101.178.160:8083/mqtt";
+            MqttUser = "admin";
+            MqttPassword = "public";
+            HeartBeatSecond = 10;
+            MaterialPath = "./materials";
+        }
+        public string Code { get; set; }
+        public string Server { get; set; }
+        public string MqttUser { get; set; }
+        public string MqttPassword { get; set; }
+        public int HeartBeatSecond { get; set; }
+        public string MaterialPath { get; set; }
+        public bool DelayedUpdate { get; set; }
     }
 }

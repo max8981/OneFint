@@ -5,11 +5,11 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>hatRSS+blk.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="CustomControls\ControlHelper.cs" />
-    <Compile Remove="CustomControls\DownloadControl.xaml.cs" />
     <Compile Remove="CustomControls\ExhibitionControl.xaml.cs" />
     <Compile Remove="CustomControls\ImageControl.xaml.cs" />
     <Compile Remove="CustomControls\View.xaml.cs" />
@@ -17,14 +17,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Remove="CustomControls\DownloadControl.xaml" />
     <Page Remove="CustomControls\ExhibitionControl.xaml" />
     <Page Remove="CustomControls\ImageControl.xaml" />
     <Page Remove="CustomControls\View.xaml" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="hatRSS+blk.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CoreAudio" Version="1.16.0" />
+    <PackageReference Include="PP.Wpf" Version="1.0.8" />
+    <PackageReference Include="System.Management" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

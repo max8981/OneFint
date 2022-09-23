@@ -19,6 +19,7 @@ namespace ClientLibrary.UIs
         private readonly CancellationTokenSource cancellationTokenSource;
         private readonly IExhibition _exhibition;
         private bool _stopPlay;
+        private bool _isdelayedUpdate;
         public ExhibitionController(IExhibition exhibition)
         {
             _exhibition = exhibition;
@@ -28,6 +29,7 @@ namespace ClientLibrary.UIs
         {
             Task.Factory.StartNew(() => AutoPlay(cancellationTokenSource.Token), cancellationTokenSource.Token);
         }
+        public void SetDelayedUpdate(bool b) => _isdelayedUpdate = b;
         public void AddContent(Models.Content content)
         {
             switch (content.ContentType)
@@ -70,7 +72,8 @@ namespace ClientLibrary.UIs
                     _emergencyContents.Clear();
                     break;
             }
-            Stop();
+            if (!_isdelayedUpdate)
+                Stop();
         }
         public void RemoveNewFlashContent(int id)
         {
@@ -120,26 +123,26 @@ namespace ClientLibrary.UIs
                     }
                     _ = DateTime.TryParse(content.EndedAt, out var end);
                     SpinWait.SpinUntil(() => DateTime.Now > end || _stopPlay, content.PlayDuration * 1000);
-                    _exhibition.Hidden(content.Id);
+                    //_exhibition.Hidden(content.Id);
                 }
             }
         }
         private void PlayAudio(Models.Content content)
         {
             if(content.Material!=null)
-                if (MaterialDownload(content.Material, content.PlayDuration, out var material))
+                if (MaterialDownload(content, out var material))
                     _exhibition.ShowAudio(content.Id, material);
         }
         private void PlayVideo(Models.Content content)
         {
             if (content.Material != null)
-                if (MaterialDownload(content.Material, content.PlayDuration, out var material))
+                if (MaterialDownload(content, out var material))
                     _exhibition.ShowVideo(content.Id, material, content.Mute);
         }
         private void PlayImage(Models.Content content)
         {
             if (content.Material != null)
-                if (MaterialDownload(content.Material, content.PlayDuration, out var material))
+                if (MaterialDownload(content, out var material))
                     _exhibition.ShowImage(content.Id, material);
         }
         private static bool GetContent(ConcurrentQueue<Models.Content> contents,out Models.Content? content)
@@ -198,29 +201,43 @@ namespace ClientLibrary.UIs
             }
             return result;
         }
-        private bool MaterialDownload(Models.Material material,int timeOut ,out string materialPath)
+        private bool MaterialDownload(Content content ,out string materialPath)
         {
             var result = false;
-            var id = material.Id;
-            var name = material.Name??"";
-            var url = material.Content;
-            var task = Downloader.GetOrAddTask(id, url!);
-            materialPath = task.FileName;
-            result = SpinWait.SpinUntil(() =>
+            materialPath = "";
+            if (content.Material != null)
             {
-                if (!task.IsComplete)
+                var material = content.Material;
+                var id = material.Id;
+                var name = material.Name ?? "";
+                var url = material.Content;
+                var task = Downloader.GetOrAddTask(id, url!);
+                materialPath = task.FileName;
+                result = SpinWait.SpinUntil(() =>
                 {
-                    var speed = Downloader.GetByteString(task.DownloadSpeed);
-                    _exhibition.ShowDownload(id, name, $"{speed}/s", task.Progress);
-                }
-                return task.IsComplete;
-            }, timeOut * 1000);
-            _exhibition.Hidden(id);
+                    if (!task.IsComplete)
+                    {
+                        var speed = Downloader.GetByteString(task.DownloadSpeed);
+                        _exhibition.ShowDownload(id, name, $"{speed}/s", task.Progress);
+                    }
+                    else
+                    {
+                        //ClientController.MaterialDownloadStatus(new ClientToServer.MaterialDownloadStatus(content.Id, true, content.Device?.Id, content.DeviceGroup?.Id));
+                    }
+                    return task.IsComplete;
+                }, content.PlayDuration * 1000);
+                _exhibition.Hidden(id);
+            }
             return result;
+        }
+        internal void Close()
+        {
+            cancellationTokenSource.Cancel();
+            _stopPlay = true;
         }
         ~ExhibitionController()
         {
-            cancellationTokenSource.Cancel();
+            Close();
         }
     }
 }

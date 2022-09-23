@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,10 +10,12 @@ namespace Client_Wpf
 {
     public class Information
     {
-        public string MachineName => Environment.MachineName;
-        public string OSVersion => Environment.OSVersion.VersionString;
-        public string DiskSize => GetDiskSize();
-        public string DesktopMonitor => GetDesktopMonitor();
+        public static string MachineName => Environment.MachineName;
+        public static string MachineCode => GetMachineCode();
+        public static string OSVersion => Environment.OSVersion.VersionString;
+        public static string DiskSize => GetDiskSize();
+        public static string DesktopMonitor => GetDesktopMonitor();
+        public static string MacAddress => GetMacByNetworkInterface();
         private static string GetDiskSize()
         {
             string hdId = string.Empty;
@@ -43,6 +46,27 @@ namespace Client_Wpf
             }
             return result;
         }
+        private static string GetMacByNetworkInterface()
+        {
+            try
+            {
+                NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
+                foreach (NetworkInterface ni in interfaces)
+                {
+                    return BitConverter.ToString(ni.GetPhysicalAddress().GetAddressBytes());
+                }
+            }
+            catch (Exception)
+            {
+            }
+            return "00-00-00-00-00-00";
+        }
+        private static string GetMachineCode()
+        {
+            var mac = GetMacByNetworkInterface();
+            var arr = mac.Split("-");
+            return string.Join(":", arr.Skip(2));
+        }
         public static string GetByteString(double value, int mod)
         {
             char[] units = new char[] { '\0', 'K', 'M', 'G', 'T', 'P' };
@@ -53,6 +77,22 @@ namespace Client_Wpf
                 i++;
             }
             return $"{Math.Round(value)}{units[i]}b";
+        }
+        private static string Increment(int num)
+        {
+            string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var numList = new List<char>();
+            while (true)
+            {
+                int remainder = num % chars.Length;
+                numList.Add(chars[remainder]);
+                num /= chars.Length;
+
+                if (num != 0) continue;
+
+                numList.Reverse();
+                return new string(numList.ToArray());
+            }
         }
     }
 }

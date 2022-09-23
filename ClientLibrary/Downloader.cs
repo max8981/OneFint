@@ -16,7 +16,7 @@ namespace ClientLibrary
         private const long MB = 1024 * KB;
         private const long GB = 1024 * MB;
         private const long TB = 1024 * GB;
-        private static string downloadPath = "./";
+        private static string materialPath = "./materials";
         private static readonly DownloadQueue.DownloadQueue downloadQueue = new();
         private static readonly ConcurrentDictionary<int, DownloadTask> _taskQueue = new();
         public static DownloadTask GetOrAddTask(int id,string url,string? name=null)
@@ -32,13 +32,13 @@ namespace ClientLibrary
             }
             return task;
         }
-        public static void SetDownloadPath(string path)
+        public static void SetMaterialsPath(string path)
         {
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
-            downloadPath = path;
+            materialPath = path;
         }
         public static string GetByteString(long value)
         {
@@ -80,11 +80,33 @@ namespace ClientLibrary
                 };
                 FileSize = 1;
                 NetTask = downloadQueue.MakeDefault(url);
-                NetTask.Filename = FileName = new FileInfo(downloadPath + Name).FullName;
+                var tempFile = Path.GetTempFileName();
+                FileName = new FileInfo(Path.Combine(materialPath,Name)).FullName;
+                NetTask.Filename = tempFile;
                 NetTask.StartCallback = () => timer.Start();
                 NetTask.SizeCallback = o => FileSize = o;
                 NetTask.DownloadCallback = o => { DownloadSize += o; ds += o; Progress = (float)DownloadSize / FileSize; };
-                NetTask.CompleteCallback = () => { IsComplete = true; timer.Close(); CompleteCallback(this); };
+                NetTask.CompleteCallback = () =>
+                {
+                    timer.Close();
+                    _ = Task.Factory.StartNew(() =>
+                    {
+                        SpinWait.SpinUntil(() =>
+                        {
+                            try
+                            {
+                                File.Move(tempFile, FileName, true);
+                                return true;
+                            }
+                            catch
+                            {
+                                return false;
+                            }
+                        });
+                        IsComplete = true;
+                        CompleteCallback(this);
+                    });
+                };
                 IsComplete = File.Exists(FileName);
             }
             public int Id { get; init; }

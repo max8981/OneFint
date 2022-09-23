@@ -18,6 +18,21 @@ namespace Test
             throw new NotImplementedException();
         }
 
+        public void Close()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ShowCode(string code)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ShowView()
+        {
+            throw new NotImplementedException();
+        }
+
         public IExhibition TryAddExhibition(int id, string name, Rectangle rectangle, int z)
         {
             return new Exhibition();

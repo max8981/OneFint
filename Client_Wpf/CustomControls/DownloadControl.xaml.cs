@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Client_Wpf.CustomControls
+namespace Client_Wpf
 {
     /// <summary>
     /// DownloadControl.xaml 的交互逻辑
@@ -25,6 +25,8 @@ namespace Client_Wpf.CustomControls
             InitializeComponent();
             titleLabel.Foreground = new SolidColorBrush(Colors.White);
             statusLabel.Foreground = new SolidColorBrush(Colors.White);
+            VerticalAlignment = VerticalAlignment.Center;
+            HorizontalAlignment = HorizontalAlignment.Stretch;
             progress.Maximum = 100;
             progress.Value = 0;
         }

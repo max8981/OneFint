@@ -6,17 +6,38 @@
         xmlns:local="clr-namespace:Client_Wpf"
         xmlns:CustomControls="clr-namespace:Client_Wpf.CustomControls" x:Class="Client_Wpf.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="800">
+        Title="MainWindow" Height="509" Width="832" Closing="Window_Closing">
     <Grid x:Name="MainGrid">
-        <Button Content="Button" HorizontalAlignment="Left" Margin="68,36,0,0" VerticalAlignment="Top" Click="Button_Click"/>
-        <Button Content="downloadTest" HorizontalAlignment="Left" Margin="17,104,0,0" VerticalAlignment="Top" Click="Button_Click_1"/>
-        <Button Content="View" HorizontalAlignment="Left" Margin="61,189,0,0" VerticalAlignment="Top" Click="Button_Click_2"/>
-        <RichTextBox x:Name="richTextBox" HorizontalAlignment="Right" Margin="200,0,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="193*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="263*"/>
+            <ColumnDefinition Width="537*"/>
+        </Grid.ColumnDefinitions>
+        <Button Content="PowerOff" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click" Height="19" Width="58" Grid.Row="3" Margin="20,50,0,126"/>
+        <Button Content="展示" HorizontalAlignment="Center" VerticalAlignment="Bottom" Click="Button_Click_2" Grid.Row="3" Height="42" Width="83" Margin="0,0,0,20"/>
+        <RichTextBox x:Name="richTextBox" Grid.Column="1" Grid.RowSpan="4">
             <FlowDocument x:Name="flowDoc">
-                <Paragraph>
-                    <Run Text="RichTextBox"/>
-                </Paragraph>
+
             </FlowDocument>
         </RichTextBox>
+        <GroupBox Header="伽马值" Grid.Row="1">
+            <Slider x:Name="screenBrightness" Maximum="1" TickFrequency="0.1" Value="0.5" ValueChanged="screenBrightness_ValueChanged" LargeChange="0.5" Grid.Row="1"/>
+        </GroupBox>
+        <GroupBox Header="音量" Grid.Row="2" Margin="0,0,0,8">
+            <Slider x:Name="systemVolume" Maximum="100" Value="20" ValueChanged="systemVolume_ValueChanged"/>
+        </GroupBox>
+        <Label Content="Server(ws)" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top"/>
+        <Label Content="username" HorizontalAlignment="Left" Margin="20,50,0,0" VerticalAlignment="Top"/>
+        <Label Content="password" HorizontalAlignment="Left" Margin="20,80,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="serverTextBox" HorizontalAlignment="Left" Margin="100,25,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Height="17"/>
+        <TextBox x:Name="usernameTextBox" HorizontalAlignment="Left" Margin="100,55,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Height="17"/>
+        <TextBox x:Name="passwordTextBox" HorizontalAlignment="Left" Margin="100,85,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Height="17"/>
+        <CheckBox x:Name="delayedUpdateCheckBox" Content="延迟刷新" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top" Grid.Row="3" Checked="CheckBox_Checked"/>
+        <Button Content="保存" HorizontalAlignment="Center" Margin="0,110,0,0" VerticalAlignment="Top" Height="24" Width="60" Click="Button_Click_1"/>
     </Grid>
 </Window>

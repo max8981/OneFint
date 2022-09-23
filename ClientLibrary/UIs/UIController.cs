@@ -10,12 +10,12 @@ namespace ClientLibrary.UIs
 {
     internal class UIController
     {
-        private readonly IPageController _pageController;
+        private readonly IPageController[] _pageControllers;
         private readonly Dictionary<int, ExhibitionController> _exhibitions;
-        public UIController(IPageController pageController)
+        public UIController(IPageController[] pageControllers)
         {
             _exhibitions = new();
-            _pageController = pageController;
+            _pageControllers = pageControllers;
         }
         public void NormalAndDefaultContent(BaseContent baseContent)
         {
@@ -58,7 +58,10 @@ namespace ClientLibrary.UIs
         }
         private void SetLayout(Models.Layout? layout)
         {
-            if(layout!=null&&layout.Content!=null&&layout.Content.Pages!=null)
+            var pageController = _pageControllers.First();
+            pageController.Clear();
+            pageController.ShowView();
+            if (layout!=null&&layout.Content!=null&&layout.Content.Pages!=null)
                 foreach (var page in layout.Content.Pages)
                     if (page.Components != null)
                         foreach (var component in page.Components)
@@ -75,7 +78,7 @@ namespace ClientLibrary.UIs
             var z = component.Z;
             var text = component.Text;
             var rectangle = new System.Drawing.Rectangle(x, y, w, h);
-            var exhibition = _pageController.TryAddExhibition(id, name, rectangle, z);
+            var exhibition = _pageControllers.First().TryAddExhibition(id, name, rectangle, z);
             var controller = new ExhibitionController(exhibition);
             switch (component.ComponentType)
             {
@@ -108,6 +111,29 @@ namespace ClientLibrary.UIs
                         if (item.Key.HasValue)
                             _exhibitions[item.Key.Value].AddContent(content);
             }
+        }
+        internal void SetDelayedUpdate(bool b)
+        {
+            foreach (var exhibition in _exhibitions.Values)
+            {
+                exhibition.SetDelayedUpdate(b);
+            }
+        }
+        internal void Close()
+        {
+            foreach (var exhibition in _exhibitions.Values)
+            {
+                exhibition.Close();
+            }
+            _exhibitions.Clear();
+            foreach (var pageController in _pageControllers)
+            {
+                pageController.Close();
+            }
+        }
+        ~UIController()
+        {
+            Close();
         }
     }
 }

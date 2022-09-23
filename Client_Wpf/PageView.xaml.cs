@@ -34,13 +34,15 @@ namespace Client_Wpf
             Top = 0;
             Width = SystemParameters.PrimaryScreenWidth;
             Height = SystemParameters.PrimaryScreenHeight;
+            Activated += (o, e) => WindowsController.ShowCursor();
+            Deactivated += (o, e) => WindowsController.HiddenCursor();
+
 #if DEBUG
             Topmost = false;
 #endif
         }
 
         public int Id { get; set; }
-
         public IExhibition TryAddExhibition(int id, string name, System.Drawing.Rectangle rectangle, int z)
         {
             ExhibitionComponent exhibition =
@@ -62,11 +64,12 @@ namespace Client_Wpf
         {
             Dispatcher.Invoke(() =>
             {
-                foreach (UserControl control in grid.Children)
-                {
-                    grid.UnregisterName(control.Name);
-                    grid.Children.Remove(control);
-                }
+                machineCodeLabel.Visibility = Visibility.Hidden;
+                //foreach (UserControl control in grid.Children)
+                //{
+                //    grid.UnregisterName(control.Name);
+                //    grid.Children.Remove(control);
+                //}
             });
         }
 
@@ -106,6 +109,23 @@ namespace Client_Wpf
                 return null;
             });
             return result;
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Escape:
+                    Visibility = Visibility.Hidden;
+                    break;
+            }
+        }
+
+        public void ShowView() => Dispatcher.Invoke(() => Show());
+
+        public void ShowCode(string code)
+        {
+            Dispatcher.Invoke(() => machineCodeLabel.Content = code);
         }
     }
 }

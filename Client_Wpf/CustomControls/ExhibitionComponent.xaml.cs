@@ -7,6 +7,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Reflection;
+using System.Globalization;
+using System.Threading;
+using System.Windows.Media.Animation;
 
 namespace Client_Wpf
 {
@@ -50,6 +53,7 @@ namespace Client_Wpf
                     Dispatcher.Invoke(() => element.Visibility = Visibility.Hidden);
                 }
             }
+            Dispatcher.Invoke(() => grid.Background = new SolidColorBrush(Colors.Transparent));
         }
 
         public void ShowAudio(int id, string source)
@@ -100,6 +104,7 @@ namespace Client_Wpf
             DownloadControl downloader=
             Dispatcher.Invoke(() =>
             {
+                Hidden();
                 if (grid.FindName(name) is not DownloadControl downloader)
                 {
                     downloader = new DownloadControl();
@@ -108,6 +113,7 @@ namespace Client_Wpf
                     _elements.Add(id, downloader);
                 }
                 downloader.SetProgress(title, content, progress);
+                downloader.Visibility = Visibility.Visible;
                 return downloader;
             });
         }
@@ -116,6 +122,7 @@ namespace Client_Wpf
         {
             Dispatcher.Invoke(() =>
             {
+                Hidden();
                 if (grid.FindName("image") is not System.Windows.Controls.Image image)
                 {
                     image = new()
@@ -138,25 +145,28 @@ namespace Client_Wpf
             if(text!=null)
                 Dispatcher.Invoke(() =>
                 {
+                    Hidden();
                     if (grid.FindName(name) is not TextBlock textBlock)
                     {
                         textBlock = new TextBlock
                         {
                             Name = name,
                             Margin = new Thickness(0, 0, 0, 0),
-                        };
+                            TextWrapping=TextWrapping.WrapWithOverflow,
+                            Background= new SolidColorBrush(Colors.Transparent),
+                    };
                         grid.Children.Add(textBlock);
                         grid.RegisterName(name, textBlock);
                         _elements.Add(id, textBlock);
                     }
+                    grid.Background = GetBrush(text.BackgroundColor);
                     textBlock.Text = text.Text;
                     textBlock.FontSize = GetFontSize(text.FontSize);
                     textBlock.Foreground = GetBrush(text.FontColor);
-                    textBlock.Background = GetBrush(text.BackgroundColor);
                     textBlock.TextAlignment = GetTextAlignment((int)text.Horizontal);
                     textBlock.HorizontalAlignment = GetHorizontal((int)text.Horizontal);
                     textBlock.VerticalAlignment = GetVertical((int)text.Vertical);
-                    grid.Background = GetBrush(text.BackgroundColor);
+                    textBlock.Visibility = Visibility.Visible;
                 });
         }
 
@@ -164,6 +174,7 @@ namespace Client_Wpf
         {
             Dispatcher.Invoke(() =>
             {
+                Hidden();
                 if (grid.FindName("video") is not MediaElement mediaElement)
                 {
                     mediaElement = new()
@@ -185,14 +196,15 @@ namespace Client_Wpf
                             mediaElement.Play();
                         }
                     };
+                    mediaElement.MediaEnded += (o, e) => mediaElement.Visibility = Visibility.Hidden;
                     grid.Children.Add(mediaElement);
                     grid.RegisterName("video", mediaElement);
                     _elements.Add(id, mediaElement);
                 }
-                mediaElement.Visibility = Visibility.Visible;
                 mediaElement.Source = new Uri(source);
                 mediaElement.Volume = mute ? 0 : 1;
                 mediaElement.Play();
+                mediaElement.Visibility = Visibility.Visible;
             });
         }
 
@@ -200,6 +212,7 @@ namespace Client_Wpf
         {
             Dispatcher.BeginInvoke(() =>
             {
+                Hidden();
                 if (grid.FindName("web") is not WebBrowser webBrowser)
                 {
                     webBrowser = new();
@@ -275,6 +288,25 @@ namespace Client_Wpf
                 3 => System.Windows.TextAlignment.Right,
                 _ => System.Windows.TextAlignment.Justify,
             };
+        }
+        private static double GetTextDisplayWidth(TextBlock text)
+        {
+            var str = text.Text;
+            var fontFamily = text.FontFamily;
+            var fontStyle = text.FontStyle;
+            var fontWeight = text.FontWeight;
+            var fontStretch = text.FontStretch;
+            var FontSize = text.FontSize;
+            var formattedText = new FormattedText(
+                                str,
+                                CultureInfo.CurrentUICulture,
+                                FlowDirection.LeftToRight,
+                                new Typeface(fontFamily, fontStyle, fontWeight, fontStretch),
+                                FontSize,
+                                Brushes.Black,
+                                1);
+            Size size = new Size(formattedText.Width, formattedText.Height);
+            return size.Width;
         }
     }
 }

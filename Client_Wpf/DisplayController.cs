@@ -105,8 +105,7 @@ namespace Client_Wpf
 
         public static double GetMonitorBrightness(PHYSICAL_MONITOR physicalMonitor)
         {
-            uint dwMinimumBrightness, dwCurrentBrightness, dwMaximumBrightness;
-            if (!GetMonitorBrightness(physicalMonitor.hPhysicalMonitor, out dwMinimumBrightness, out dwCurrentBrightness, out dwMaximumBrightness))
+            if (!GetMonitorBrightness(physicalMonitor.hPhysicalMonitor, out uint dwMinimumBrightness, out uint dwCurrentBrightness, out uint dwMaximumBrightness))
             {
                 throw new Win32Exception(Marshal.GetLastWin32Error());
             }

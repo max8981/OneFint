@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Client_Wpf"
         mc:Ignorable="d"
-        Title="PageView" Height="450" Width="800">
+        Title="PageView" Height="450" Width="800" KeyDown="Window_KeyDown">
     <Grid x:Name="grid">
-        
+        <Label x:Name="machineCodeLabel" Content="Label" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="72" FontWeight="Bold" Foreground="White"/>
+
     </Grid>
 </Window>
