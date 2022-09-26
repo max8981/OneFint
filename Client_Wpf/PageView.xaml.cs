@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -126,6 +127,20 @@ namespace Client_Wpf
         public void ShowCode(string code)
         {
             Dispatcher.Invoke(() => machineCodeLabel.Content = code);
+        }
+
+        public void ShowMessage(string message, int time)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                messageTextBlock.Text = message;
+                messageTextBlock.Visibility = Visibility.Visible;
+            });
+            Task.Delay(time * 1000);
+            Dispatcher.Invoke(() =>
+            {
+                messageTextBlock.Visibility = Visibility.Hidden;
+            });
         }
     }
 }

@@ -8,6 +8,11 @@
         Title="PageView" Height="450" Width="800" KeyDown="Window_KeyDown">
     <Grid x:Name="grid">
         <Label x:Name="machineCodeLabel" Content="Label" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="72" FontWeight="Bold" Foreground="White"/>
+        <TextBlock x:Name="messageTextBlock" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="White" FontSize="16" FontWeight="Bold" Visibility="Hidden">
+            <TextBlock.Background>
+                <SolidColorBrush Color="#FF564B4B" Opacity="0.25"/>
+            </TextBlock.Background>
+        </TextBlock>
 
     </Grid>
 </Window>

@@ -215,6 +215,7 @@ namespace ClientLibrary
             _uIController.Close();
         }
         public void SetDelayedUpdate(bool b) => _uIController.SetDelayedUpdate(b);
+        public void SetShowDownloader(bool b) => _uIController.SetShowDownloader(b);
         ~ClientController()
         {
             Close();

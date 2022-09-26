@@ -24,5 +24,6 @@ namespace ClientLibrary
         public int HeartBeatSecond { get; set; }
         public string MaterialPath { get; set; }
         public bool DelayedUpdate { get; set; }
+        public bool ShowDownloader { get; set; }
     }
 }

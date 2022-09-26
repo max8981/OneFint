@@ -28,6 +28,11 @@ namespace Test
             throw new NotImplementedException();
         }
 
+        public void ShowMessage(string message, int time)
+        {
+            throw new NotImplementedException();
+        }
+
         public void ShowView()
         {
             throw new NotImplementedException();

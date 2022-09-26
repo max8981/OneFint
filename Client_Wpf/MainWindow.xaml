@@ -38,6 +38,7 @@
         <TextBox x:Name="usernameTextBox" HorizontalAlignment="Left" Margin="100,55,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Height="17"/>
         <TextBox x:Name="passwordTextBox" HorizontalAlignment="Left" Margin="100,85,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Height="17"/>
         <CheckBox x:Name="delayedUpdateCheckBox" Content="延迟刷新" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top" Grid.Row="3" Checked="CheckBox_Checked"/>
+        <CheckBox x:Name="showDownloaderCheckBox" Content="显示下载" HorizontalAlignment="Left" Margin="130,20,0,0" VerticalAlignment="Top" Grid.Row="3" Checked="showDownloaderCheckBox_Checked"/>
         <Button Content="保存" HorizontalAlignment="Center" Margin="0,110,0,0" VerticalAlignment="Top" Height="24" Width="60" Click="Button_Click_1"/>
     </Grid>
 </Window>

@@ -119,6 +119,13 @@ namespace ClientLibrary.UIs
                 exhibition.SetDelayedUpdate(b);
             }
         }
+        internal void SetShowDownloader(bool b)
+        {
+            foreach (var exhibition in _exhibitions.Values)
+            {
+                exhibition.SetShowDownloader(b);
+            }
+        }
         internal void Close()
         {
             foreach (var exhibition in _exhibitions.Values)

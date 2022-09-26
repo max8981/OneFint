@@ -19,8 +19,6 @@ namespace ClientLibrary
         private readonly IMqttClient _mqttClient;
         private readonly MqttClientOptionsBuilder _optionsBuilder;
         private readonly IClient _client;
-        private bool _connected = false;
-        public Action<bool> ConnectStatus = o => { };
         internal Action<TopicTypeEnum, string> Receive = (t, j) => { };
         internal Mqtt(IClient client)
         {
@@ -34,10 +32,8 @@ namespace ClientLibrary
             };
             _mqttClient.ConnectedAsync += _ =>
             {
-                _connected = true;
                 _client.WriteLog("Mqtt-Connected", _.ConnectResult.ResultCode.ToString());
                 Subscribe();
-                ConnectStatus(_connected);
                 return Task.CompletedTask;
             };
             _mqttClient.ApplicationMessageReceivedAsync += arg =>
@@ -50,8 +46,6 @@ namespace ClientLibrary
             _mqttClient.DisconnectedAsync += _ =>
             {
                 _client.WriteLog("Mqtt-Disconnected", _.Reason.ToString());
-                _connected = false;
-                ConnectStatus(_connected);
                 return Task.CompletedTask;
             };
             _optionsBuilder = new MqttClientOptionsBuilder()
@@ -71,7 +65,7 @@ namespace ClientLibrary
         }
         internal async void Send(ClientToServer.TopicTypeEnum topic, string json)
         {
-            if (_connected)
+            if (_mqttClient.IsConnected)
             {
                 await _mqttClient.PublishStringAsync(topic.ToString(), json);
                 _client.WriteLog($"Mqtt-Send-{topic}", $"{json}");
@@ -84,7 +78,6 @@ namespace ClientLibrary
         }
         internal void Close()
         {
-            _connected = false;
             _mqttClient.Dispose();
         }
         private async void Subscribe()

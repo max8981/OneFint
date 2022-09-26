@@ -52,6 +52,7 @@ namespace Client_Wpf
             usernameTextBox.Text = Config.MqttUser;
             passwordTextBox.Text = Config.MqttPassword;
             delayedUpdateCheckBox.IsChecked = Config.DelayedUpdate;
+            showDownloaderCheckBox.IsChecked = Config.ShowDownloader;
             PageControllers = new PageView[] { new PageView() };
             foreach (var pageController in PageControllers)
             {
@@ -119,6 +120,20 @@ namespace Client_Wpf
                     {
                         Config.DelayedUpdate = check.IsChecked.Value;
                         _controller.SetDelayedUpdate(Config.DelayedUpdate);
+                        Save(nameof(Config), Config);
+                    }
+                }
+        }
+
+        private void showDownloaderCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox check)
+                if (check.IsChecked.HasValue)
+                {
+                    if (Config.ShowDownloader != check.IsChecked.Value)
+                    {
+                        Config.ShowDownloader = check.IsChecked.Value;
+                        _controller.SetShowDownloader(Config.ShowDownloader);
                         Save(nameof(Config), Config);
                     }
                 }
