@@ -18,6 +18,7 @@ namespace ClientLibrary
     {
         private readonly IMqttClient _mqttClient;
         private readonly MqttClientOptionsBuilder _optionsBuilder;
+        private readonly MqttClientOptions _options;
         private readonly IClient _client;
         internal Action<TopicTypeEnum, string> Receive = (t, j) => { };
         internal Mqtt(IClient client)
@@ -51,12 +52,13 @@ namespace ClientLibrary
             _optionsBuilder = new MqttClientOptionsBuilder()
                 .WithWebSocketServer(_client.Config.Server)
                 .WithCredentials(_client.Config.MqttUser, _client.Config.MqttPassword);
+            _options = _optionsBuilder.Build();
         }
         internal async void Connect()
         {
             try
             {
-                await _mqttClient.ConnectAsync(_optionsBuilder.Build());
+                await _mqttClient.ConnectAsync(_options);
             }
             catch (Exception ex)
             {

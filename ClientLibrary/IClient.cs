@@ -16,6 +16,7 @@ namespace ClientLibrary
         Action<int> ScreenPowerOn { get; }
         Action<int> ScreenBrightness { get; }
         Action DeleteTempFiles { get; }
+        Action<string[]> DeleteFiles { get; }
         int Volume { get; }
         void Save<T>(string key,T value);
         T Load<T>(string key)where T:new();

@@ -74,17 +74,23 @@ namespace ClientLibrary
                     break;
                 case ServerToClient.TopicTypeEnum.timing_boot:
                     if (TryFromJson<TimingBoot>(json, out var timingBoot))
+                    {
+                        _timingBoots.Clear();
                         if (timingBoot != null)
                             if (timingBoot.Policies != null)
                                 foreach (var policy in timingBoot.Policies)
                                     AddTimingBootPolicy(policy);
+                    }
                     break;
                 case ServerToClient.TopicTypeEnum.timing_volume:
                     if (TryFromJson<TimingVolume>(json, out var timingVolume))
+                    {
+                        _timingVolumes.Clear();
                         if (timingVolume != null)
                             if (timingVolume.Policies != null)
                                 foreach (var policy in timingVolume.Policies)
                                     AddTimingVolumePolicy(policy);
+                    }
                     break;
             }
         }
@@ -98,28 +104,12 @@ namespace ClientLibrary
                         var id = material.Id;
                         var ext = Path.GetExtension(uri.Segments.Last());
                         var file = Path.Combine(_client.Config.MaterialPath, $"{id}{ext}");
-                        try
-                        {
-                            System.IO.File.Delete(file);
-                        }
-                        catch (Exception ex)
-                        {
-                            _client.WriteLog("DeleteMaterial-Exception", ex.Message);
-                        }
+                        _client.DeleteFiles(new string[] { file });
                     }
             if (delete.DeleteAll)
             {
-                foreach (var file in System.IO.Directory.GetFiles(_client.Config.MaterialPath))
-                {
-                    try
-                    {
-                        System.IO.File.Delete(file);
-                    }
-                    catch (Exception ex)
-                    {
-                        _client.WriteLog("DeleteMaterial-Exception", ex.Message);
-                    }
-                }
+                var files = System.IO.Directory.GetFiles(_client.Config.MaterialPath);
+                _client.DeleteFiles(files);
             }
         }
         internal void MaterialDownloadUrl(ServerToClient.MaterialDownloadUrl material)

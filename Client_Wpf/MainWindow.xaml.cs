@@ -2,6 +2,7 @@
 using ClientLibrary.UIs;
 using Microsoft.Win32.SafeHandles;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Diagnostics;
@@ -16,6 +17,8 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Animation;
 using System.Xml.Linq;
+using AutoUpdaterDotNET;
+using System.Text.Json.Serialization;
 
 namespace Client_Wpf
 {
@@ -25,6 +28,7 @@ namespace Client_Wpf
     public partial class MainWindow : Window,ClientLibrary.IClient
     {
         private readonly ClientController _controller;
+        private readonly List<string> _deleteFiles;
 
         public Action<DateTime> PowerOn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Action<DateTime> PowerOff { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -33,7 +37,14 @@ namespace Client_Wpf
         public Action<int> ScreenPowerOff => o => WindowsController.ScreenPowerOff();
         public Action<int> ScreenPowerOn => o => WindowsController.ScreenPowerOn();
         public Action<int> ScreenBrightness => o => WindowsController.SetScreenBrightness(o);
-        public Action DeleteTempFiles => () => System.IO.File.Delete(System.IO.Path.GetTempPath());
+        public Action DeleteTempFiles => () =>
+        {
+            //System.IO.Directory.Delete(System.IO.Path.GetTempPath());
+            foreach (var item in System.IO.Directory.GetFiles(System.IO.Path.GetTempPath()))
+            {
+                System.IO.File.Delete(item);
+            }
+        };
         public Action<string, string> WriteLog => (t, c) => RichTextBoxWriteLog(t, c);
 
         public IPageController[] PageControllers { get; set; } 
@@ -42,9 +53,11 @@ namespace Client_Wpf
 
         public int Volume => WindowsController.GetVolume();
 
+        public Action<string[]> DeleteFiles => o => _deleteFiles.AddRange(o);
         public MainWindow()
         {
             InitializeComponent();
+            _deleteFiles = new List<string>();
             WindowsController.PreventForCurrentThread();
             Config = WindowsController.LoadConfiguration<ClientConfig>(nameof(Config));
             Config.Code = Information.MachineCode;
@@ -60,12 +73,16 @@ namespace Client_Wpf
                 pageController.ShowView();
             }
             _controller = new(this);
-
         }
         private void RichTextBoxWriteLog(string title,string content)
         {
             Dispatcher.Invoke(() =>
             {
+                if(flowDoc.Blocks.Count > 9)
+                {
+                    flowDoc.Blocks.Remove(flowDoc.Blocks.FirstBlock);
+                    flowDoc.Blocks.Remove(flowDoc.Blocks.FirstBlock);
+                }
                 flowDoc.Blocks.Add(new Paragraph(new Bold(new Run($"[{DateTime.Now:G}]{title}"))));
                 flowDoc.Blocks.Add(new Paragraph(new Run(content)));
                 richTextBox.ScrollToEnd();
@@ -107,8 +124,6 @@ namespace Client_Wpf
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _controller.Close();
-            WindowsController.RestoreForCurrentThread();
-            Process.GetCurrentProcess().Kill();
         }
 
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
@@ -137,6 +152,39 @@ namespace Client_Wpf
                         Save(nameof(Config), Config);
                     }
                 }
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            foreach (var item in _deleteFiles)
+            {
+                try
+                {
+                    System.IO.File.Delete(item);
+                }
+                catch(Exception ex)
+                {
+                    WriteLog("DeleteFiles", ex.Message);
+                }
+
+            }
+            var a = Process.GetCurrentProcess();
+            WindowsController.RestoreForCurrentThread();
+            Process.GetCurrentProcess().Kill();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            AutoUpdater.InstalledVersion = new Version("1.1");
+            AutoUpdater.RunUpdateAsAdmin = false;
+            AutoUpdater.Mandatory = true;
+            AutoUpdater.UpdateMode = Mode.ForcedDownload;
+            AutoUpdater.ParseUpdateInfoEvent += o =>
+            {
+                var info = JsonSerializer.Deserialize<AutoUpdaterDotNET.UpdateInfoEventArgs>(o.RemoteData,new JsonSerializerOptions {PropertyNameCaseInsensitive=true });
+                o.UpdateInfo = info;
+            };
+            AutoUpdater.Start("http://localhost:5000/api/update");
         }
     }
 }

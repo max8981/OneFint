@@ -1,0 +1,16 @@
+﻿<Upload Action="/api/file/upload" Directory OnSingleCompleted="OnSingleCompleted">
+    <Button Icon="upload">
+        <span>Upload Directory</span>
+    </Button>
+</Upload>
+
+@code{
+    void OnSingleCompleted(UploadInfo fileinfo)
+    {
+        if (fileinfo.File.State == UploadState.Success)
+        {
+            var result = fileinfo.File.GetResponse<Controllers.FileController.ResultModel>();
+            fileinfo.File.Url = result.Url;
+        }
+    }
+}

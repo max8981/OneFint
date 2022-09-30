@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Client_Wpf"
         xmlns:CustomControls="clr-namespace:Client_Wpf.CustomControls" x:Class="Client_Wpf.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="509" Width="832" Closing="Window_Closing">
+        Title="MainWindow" Height="509" Width="832" Closing="Window_Closing" Closed="Window_Closed" Loaded="Window_Loaded">
     <Grid x:Name="MainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="150"/>
@@ -15,7 +15,7 @@
             <RowDefinition Height="193*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="263*"/>
+            <ColumnDefinition Width="240"/>
             <ColumnDefinition Width="537*"/>
         </Grid.ColumnDefinitions>
         <Button Content="PowerOff" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click" Height="19" Width="58" Grid.Row="3" Margin="20,50,0,126"/>
@@ -31,12 +31,12 @@
         <GroupBox Header="音量" Grid.Row="2" Margin="0,0,0,8">
             <Slider x:Name="systemVolume" Maximum="100" Value="20" ValueChanged="systemVolume_ValueChanged"/>
         </GroupBox>
-        <Label Content="Server(ws)" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top"/>
-        <Label Content="username" HorizontalAlignment="Left" Margin="20,50,0,0" VerticalAlignment="Top"/>
-        <Label Content="password" HorizontalAlignment="Left" Margin="20,80,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="serverTextBox" HorizontalAlignment="Left" Margin="100,25,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Height="17"/>
-        <TextBox x:Name="usernameTextBox" HorizontalAlignment="Left" Margin="100,55,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Height="17"/>
-        <TextBox x:Name="passwordTextBox" HorizontalAlignment="Left" Margin="100,85,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Height="17"/>
+        <Label Content="Server(ws)" HorizontalAlignment="Left" Margin="10,20,0,0" VerticalAlignment="Top"/>
+        <Label Content="username" HorizontalAlignment="Left" Margin="10,50,0,0" VerticalAlignment="Top"/>
+        <Label Content="password" HorizontalAlignment="Left" Margin="10,80,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="serverTextBox" HorizontalAlignment="Left" Margin="80,25,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="140" Height="17"/>
+        <TextBox x:Name="usernameTextBox" HorizontalAlignment="Left" Margin="80,55,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="140" Height="17"/>
+        <TextBox x:Name="passwordTextBox" HorizontalAlignment="Left" Margin="80,85,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="140" Height="17"/>
         <CheckBox x:Name="delayedUpdateCheckBox" Content="延迟刷新" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top" Grid.Row="3" Checked="CheckBox_Checked"/>
         <CheckBox x:Name="showDownloaderCheckBox" Content="显示下载" HorizontalAlignment="Left" Margin="130,20,0,0" VerticalAlignment="Top" Grid.Row="3" Checked="showDownloaderCheckBox_Checked"/>
         <Button Content="保存" HorizontalAlignment="Center" Margin="0,110,0,0" VerticalAlignment="Top" Height="24" Width="60" Click="Button_Click_1"/>
