@@ -10,5 +10,6 @@ namespace ClientLibrary.ClientToServer
     {
         heartbeat,
         material_download_status,
+        reconnect,
     }
 }

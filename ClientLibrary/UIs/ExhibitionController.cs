@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -12,6 +13,7 @@ namespace ClientLibrary.UIs
 {
     public class ExhibitionController
     {
+        private readonly ConcurrentDictionary<int, Models.NewFlashContentPayload> nfc = new();
         private readonly ConcurrentQueue<Models.Content> _defaultContents = new();
         private readonly ConcurrentQueue<Models.Content> _normalContents = new();
         private readonly ConcurrentQueue<Models.NewFlashContentPayload> _newFlashContents = new();
@@ -19,8 +21,8 @@ namespace ClientLibrary.UIs
         private readonly CancellationTokenSource cancellationTokenSource;
         private readonly IExhibition _exhibition;
         private bool _stopPlay;
-        private bool _isDelayedUpdate;
-        private bool _isShowDownloader;
+        private static bool _isDelayedUpdate;
+        private static bool _isShowDownloader;
         public ExhibitionController(IExhibition exhibition)
         {
             _exhibition = exhibition;
@@ -30,8 +32,8 @@ namespace ClientLibrary.UIs
         {
             Task.Factory.StartNew(() => AutoPlay(cancellationTokenSource.Token), cancellationTokenSource.Token);
         }
-        public void SetDelayedUpdate(bool b) => _isDelayedUpdate = b;
-        public void SetShowDownloader(bool b) => _isShowDownloader = b;
+        public static void SetDelayedUpdate(bool b) => _isDelayedUpdate = b;
+        public static void SetShowDownloader(bool b) => _isShowDownloader = b;
         public void AddContent(Models.Content content)
         {
             switch (content.ContentType)
@@ -51,7 +53,17 @@ namespace ClientLibrary.UIs
         }
         public void AddNewFlashContent(Models.NewFlashContentPayload payload)
         {
-            _newFlashContents.Enqueue(payload);
+            if (payload.NewFlashContent != null)
+            {
+                int id = payload.NewFlashContent.Id;
+                nfc.AddOrUpdate(id, payload, (key, value) => value = payload);
+                _newFlashContents.Clear();
+                foreach (var item in nfc.Values.OrderBy(_=>_.NewFlashContent?.Order))
+                {
+                    _newFlashContents.Enqueue(item);
+                }
+                _stopPlay = true;
+            }
         }
         public void RemoveContent(Enums.ContentTypeEnum contentType)
         {
@@ -75,20 +87,19 @@ namespace ClientLibrary.UIs
                     break;
             }
             if (!_isDelayedUpdate)
-                Stop();
+                _stopPlay = true;
         }
         public void RemoveNewFlashContent(int id)
         {
-            for (int i = 0; i < _newFlashContents.Count; i++)
+            if(nfc.Remove(id, out var payload))
             {
-                if (_newFlashContents.TryDequeue(out var payload))
-                    if (payload.NewFlashContent != null)
-                        if (payload.NewFlashContent.Id != id)
-                            _newFlashContents.Enqueue(payload);
+                _newFlashContents.Clear();
+                foreach (var item in nfc.Values.OrderBy(_ => _.NewFlashContent?.Order))
+                {
+                    _newFlashContents.Enqueue(item);
+                }
             }
         }
-        public void PLay() => _stopPlay = false;
-        public void Stop() => _stopPlay = true;
         private void AutoPlay(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
@@ -100,7 +111,7 @@ namespace ClientLibrary.UIs
                     if (isEmpty = !GetNewFlashContent(_newFlashContents, out content!))
                         if (isEmpty = !GetContent(_normalContents, out content!))
                             if (isEmpty = !GetContent(_defaultContents, out content!))
-                                SpinWait.SpinUntil(() => !isEmpty, 1000);
+                                SpinWait.SpinUntil(() => !isEmpty, 100);
                 if (content != null&&content.Material!=null)
                 {
                     switch (content.Material.MaterialType)
@@ -125,7 +136,7 @@ namespace ClientLibrary.UIs
                     }
                     _ = DateTime.TryParse(content.EndedAt, out var end);
                     SpinWait.SpinUntil(() => DateTime.Now > end || _stopPlay, content.PlayDuration * 1000);
-                    //_exhibition.Hidden(content.Id);
+                    _exhibition.Hidden(content.Id);
                 }
             }
         }
@@ -169,7 +180,7 @@ namespace ClientLibrary.UIs
             }
             return result;
         }
-        private static bool GetNewFlashContent(ConcurrentQueue<Models.NewFlashContentPayload> newFlashContents, out Models.Content? content)
+        private bool GetNewFlashContent(ConcurrentQueue<Models.NewFlashContentPayload> newFlashContents, out Models.Content? content)
         {
             var result = false;
             content = null;
@@ -185,13 +196,30 @@ namespace ClientLibrary.UIs
                         if (DateTime.Now > start)
                         {
                             if (Payload.LoopTime.HasValue)
+                            {
                                 if (Payload.LoopTime.Value > 0)
                                 {
+                                    result = true;
                                     Payload.LoopTime--;
-                                    result = Payload.LoopTime > 0;
                                 }
-                            if (DateTime.TryParse(Payload.EndAt, out var endtime))
-                                result = DateTime.Now < endtime;
+                                else
+                                {
+                                    RemoveNewFlashContent(content.Id);
+                                    result = GetNewFlashContent(newFlashContents, out content);
+                                }
+                            }
+                            else
+                            {
+                                if (DateTime.TryParse(Payload.EndAt, out var endtime))
+                                    if (DateTime.Now < endtime)
+                                        result = true;
+                                    else
+                                    {
+                                        RemoveNewFlashContent(content.Id);
+                                        result = GetNewFlashContent(newFlashContents, out content);
+                                    }
+
+                            }
                         }
                         newFlashContents.Enqueue(Payload);
                     }
@@ -213,7 +241,7 @@ namespace ClientLibrary.UIs
                 var id = material.Id;
                 var name = material.Name ?? "";
                 var url = material.Content;
-                var task = Downloader.GetOrAddTask(id, url!);
+                var task = Downloader.GetOrAddTask(id, url!,content.Id, content.Device?.Id,content.DeviceGroup?.Id);
                 materialPath = task.FileName;
                 if (_isShowDownloader)
                     result = SpinWait.SpinUntil(() =>

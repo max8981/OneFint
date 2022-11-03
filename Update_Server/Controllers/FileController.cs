@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AntDesign;
+using Microsoft.AspNetCore.Mvc;
+using System.IO;
+using System.IO.Compression;
 using System.Net;
+using System.Security.Cryptography;
 
 namespace Update_Server.Controllers
 {
@@ -17,12 +21,15 @@ namespace Update_Server.Controllers
             this.env = env;
         }
         [HttpPost, Route("upload")]
+        [RequestSizeLimit(long.MaxValue)]
         public ResultModel UploadFile([FromForm] IFormCollection formCollection)
         {
-            ResultModel result = new ResultModel();
-            result.Message = "success";
-            result.Code = 0;
-            result.Url = "/api/file/download";
+            ResultModel result = new()
+            {
+                Message = "success",
+                Code = 0,
+                Url = "/api/file/download"
+            };
             try
             {
                 string uploadPath = System.IO.Path.Combine(env.ContentRootPath, "upload");
@@ -49,6 +56,18 @@ namespace Update_Server.Controllers
             }
             return result;
         }
+        [HttpPost, Route("uploadfile")]
+        [RequestSizeLimit(long.MaxValue)]
+        public async Task<IActionResult> UpLoadfileAsync([FromQuery]string path,[FromForm] IFormFile file)
+        {
+            var tempPath = Path.Combine(env.ContentRootPath, "upload", path);
+            if (!System.IO.Directory.Exists(tempPath)) System.IO.Directory.CreateDirectory(tempPath);
+            var filePath= Path.Combine(tempPath, file.FileName);
+            using var fileStream = System.IO.File.OpenWrite(filePath);
+            using var uploadStream = file.OpenReadStream();
+            await uploadStream.CopyToAsync(fileStream);
+            return new JsonResult(new ResultModel());
+        }
         /// <summary>
         /// 下载文件
         /// </summary>
@@ -59,7 +78,6 @@ namespace Update_Server.Controllers
 
             try
             {
-
                 string filePath = "d:/update/Client.zip";
                 Stream stream = new System.IO.FileStream(filePath, FileMode.Open, FileAccess.Read);
                 FileStreamResult actionresult = new FileStreamResult(stream, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"));
@@ -68,6 +86,7 @@ namespace Update_Server.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return null;
             }
         }

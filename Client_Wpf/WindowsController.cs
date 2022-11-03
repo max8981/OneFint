@@ -1,18 +1,26 @@
-﻿using ClientLibrary;
+﻿using AutoUpdaterDotNET;
+using ClientLibrary;
 using CoreAudio;
+using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
+using PP.Wpf.Controls;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Management;
+using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Interop;
 
 namespace Client_Wpf
@@ -34,6 +42,7 @@ namespace Client_Wpf
         private static extern uint GetDpiForWindow([In] IntPtr hmonitor);
 
         private const uint WM_SYSCOMMAND = 0x0112;
+        private const uint WM_DEVICECHANGE = 0x0219;
         private const uint SC_MONITORPOWER = 0xF170;
         private static readonly IntPtr _handle = new(0xffff);
 
@@ -45,16 +54,23 @@ namespace Client_Wpf
         public static void ScreenPowerOn() => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, -1);
         public static void SetVolume(int volume)
         {
-            if (_playbackDevice.AudioEndpointVolume != null)
+            try
             {
-                volume = volume > 100 ? 100 : volume;
-                volume = volume < 0 ? 0 : volume;
-                _playbackDevice.AudioEndpointVolume.MasterVolumeLevelScalar = volume / 100f;
+                if (_playbackDevice.AudioEndpointVolume != null)
+                {
+                    volume = volume > 100 ? 100 : volume;
+                    volume = volume < 0 ? 0 : volume;
+                    _playbackDevice.AudioEndpointVolume.MasterVolumeLevelScalar = volume / 100f;
+                }
+            }
+            catch(Exception ex)
+            {
+                App.ShowMessage(ex.Message, new TimeSpan(0, 0, 5));
             }
         }
         public static int GetVolume()
         {
-            if (_playbackDevice.AudioEndpointVolume != null)
+            if (_playbackDevice?.AudioEndpointVolume != null)
             {
                 return (int)(_playbackDevice.AudioEndpointVolume.MasterVolumeLevelScalar * 100);
             }
@@ -71,6 +87,7 @@ namespace Client_Wpf
                 catch(Exception ex)
                 {
                     Console.WriteLine(ex.Message);
+                    App.ShowMessage(ex.Message,new TimeSpan(0,0,5));
                     //ClientLibrary.ClientController.WriteLog("SetScreenBrightness", ex.Message);
                 }
             }
@@ -94,6 +111,10 @@ namespace Client_Wpf
         }
         public static void PowerOffAtDatePowerOn(DateTime date)
         {
+            if (Environment.OSVersion.Version.Major < 10)
+            {
+                FakePowerOff(date); return;
+            }
             long duetime = date.ToFileTime();
             using SafeWaitHandle handle = CreateWaitableTimer(IntPtr.Zero, true, "MyWaitabletimer");
             if (SetWaitableTimer(handle, ref duetime, 0, IntPtr.Zero, IntPtr.Zero, true))
@@ -102,31 +123,96 @@ namespace Client_Wpf
                 wh.SafeWaitHandle = handle;
                 Process.Start("shutdown.exe", "-h");
                 wh.WaitOne();
+                Reboot();
             }
         }
-        public static void SaveConfiguration<T>(string key,T value)
+        public static async void FakePowerOff(DateTime date)
+        {
+            ScreenPowerOff();
+            var ts = date.TimeOfDay - DateTime.Now.TimeOfDay;
+            await Task.Delay((int)ts.Duration().TotalMilliseconds);
+            Reboot();
+        }
+        public static void Reboot()
+        {
+            Process.Start("shutdown.exe", "-r -f -t 0");
+        }
+        public static void ShutDown()
+        {
+            Process.Start("shutdown.exe", "-s -f -t 0");
+        }
+        public static void SaveConfiguration(string name, string value)
         {
             var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             var setting = configFile.AppSettings.Settings;
             var json = JsonSerializer.Serialize(value);
-            if (setting[key] == null)
-                setting.Add(key, json);
+            if (setting[name] == null)
+                setting.Add(name, value);
             else
-                setting[key].Value = json;
+                setting[name].Value = value;
             configFile.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
         }
-        public static T LoadConfiguration<T>(string key) where T : new()
+        public static string LoadConfiguration(string name)
         {
-            T? result;
-            var json = ConfigurationManager.AppSettings[key];
-            if (json != null)
+            var value = ConfigurationManager.AppSettings[name];
+            return !string.IsNullOrEmpty(value) ? value : "";
+        }
+        public static void SetAutoLogin()
+        {
+            OperatingSystem os = Environment.OSVersion;
+            Version ver = os.Version;
+            if (ver.Major == 6)
             {
-                result = JsonSerializer.Deserialize<T>(json);
-                if (result != null)
-                    return result;
+                RegistryKey key = Registry.LocalMachine;
+                var winlogon = key.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon");
+                winlogon?.SetValue("AutoAdminLogon", 1);
+                winlogon?.Close();
             }
-            return new();
+        }
+        public static void SetAutoBoot()
+        {
+            var startupPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),"client.lnk");
+            var shellType = Type.GetTypeFromProgID("WScript.Shell");
+            dynamic? shell = Activator.CreateInstance(shellType!);
+            var shortcut = shell?.CreateShortcut(startupPath);
+            if (shortcut != null)
+            {
+                shortcut.TargetPath = Process.GetCurrentProcess().MainModule?.FileName;
+                shortcut.WorkingDirectory = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
+                shortcut.Save();
+            }
+        }
+        public static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
+        {
+            if (msg == (int)WM_DEVICECHANGE)
+            {
+                USBUpdate();
+            }
+            return IntPtr.Zero;
+        }
+        private static void USBUpdate()
+        {
+            DriveInfo[] s = DriveInfo.GetDrives();
+            foreach (DriveInfo drive in s)
+            {
+                var path = System.IO.Path.Combine(drive.RootDirectory.FullName, "update");
+                if(System.IO.Directory.Exists(path))
+                    foreach (var item in System.IO.Directory.GetFiles(path))
+                    {
+                        if (item.Contains("update.json"))
+                        {
+                            AutoUpdater.ParseUpdateInfoEvent += o =>
+                            {
+                                var info = JsonSerializer.Deserialize<AutoUpdaterDotNET.UpdateInfoEventArgs>(o.RemoteData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (info != null)
+                                    info.DownloadURL = System.IO.Path.Combine(path, "client.zip");
+                                o.UpdateInfo = info;
+                            };
+                            AutoUpdater.Start(item);
+                        }
+                    }
+            }
         }
     }
 }

@@ -1,0 +1,14 @@
+﻿@page
+@model Update_Server.Pages.ChangelogModel
+@foreach (var package in Model.Project.Packages.OrderByDescending(_=>_.CreateDate))
+{
+    <h2>@package.Version</h2>
+    if (package.Changelogs!=null)
+        foreach (var item in package.Changelogs)
+        {
+            <p>@item</p>
+        }
+}
+@{
+
+}

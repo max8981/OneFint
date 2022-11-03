@@ -1,6 +1,9 @@
-﻿using ClientLibrary.UIs;
+﻿using ClientLibrary.Models;
+using ClientLibrary.UIs;
+using PP.Wpf.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,12 +12,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Xml.Linq;
 
 namespace Client_Wpf
 {
@@ -23,7 +28,7 @@ namespace Client_Wpf
     /// </summary>
     public partial class PageView : Window, ClientLibrary.UIs.IPageController
     {
-        public PageView()
+        public PageView(System.Windows.Forms.Screen screen)
         {
             InitializeComponent();
             grid.Background = new SolidColorBrush(Colors.Black);
@@ -31,16 +36,15 @@ namespace Client_Wpf
             WindowStyle = WindowStyle.None;
             ResizeMode = ResizeMode.NoResize;
             Topmost = true;
-            Left = 0;
-            Top = 0;
+            Left = screen.Bounds.X;
+            Top = screen.Bounds.Y;
             Width = SystemParameters.PrimaryScreenWidth;
             Height = SystemParameters.PrimaryScreenHeight;
-            Activated += (o, e) => WindowsController.ShowCursor();
-            Deactivated += (o, e) => WindowsController.HiddenCursor();
-
+            Activated += (o, e) => WindowsController.HiddenCursor();
+            Deactivated += (o, e) => WindowsController.ShowCursor();
 #if DEBUG
             Topmost = false;
-#endif
+#endif 
         }
 
         public int Id { get; set; }
@@ -55,7 +59,7 @@ namespace Client_Wpf
                     grid.RegisterName(name, element);
                     grid.Children.Add(element);
                 }
-                Panel.SetZIndex(this, z);
+                System.Windows.Controls.Panel.SetZIndex(this, z);
                 return element;
             });
             return exhibition;
@@ -66,11 +70,11 @@ namespace Client_Wpf
             Dispatcher.Invoke(() =>
             {
                 machineCodeLabel.Visibility = Visibility.Hidden;
-                //foreach (UserControl control in grid.Children)
-                //{
-                //    grid.UnregisterName(control.Name);
-                //    grid.Children.Remove(control);
-                //}
+                foreach (dynamic control in grid.Children)
+                {
+                    grid.UnregisterName(control.Name);
+                }
+                grid.Children.Clear();
             });
         }
 
@@ -112,7 +116,7 @@ namespace Client_Wpf
             return result;
         }
 
-        private void Window_KeyDown(object sender, KeyEventArgs e)
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             switch (e.Key)
             {
@@ -123,23 +127,37 @@ namespace Client_Wpf
         }
 
         public void ShowView() => Dispatcher.Invoke(() => Show());
-
         public void ShowCode(string code)
         {
             Dispatcher.Invoke(() => machineCodeLabel.Content = code);
         }
 
-        public void ShowMessage(string message, int time)
+        public async void ShowMessage(string message, TimeSpan delay)
         {
-            Dispatcher.Invoke(() =>
+            await Dispatcher.Invoke(async () =>
             {
-                messageTextBlock.Text = message;
-                messageTextBlock.Visibility = Visibility.Visible;
-            });
-            Task.Delay(time * 1000);
-            Dispatcher.Invoke(() =>
-            {
-                messageTextBlock.Visibility = Visibility.Hidden;
+                var name = "richTextBox";
+                if (grid.FindName(name) is not System.Windows.Controls.RichTextBox richTextBox)
+                {
+                    richTextBox = new System.Windows.Controls.RichTextBox
+                    {
+                        Name = name,
+                        Background = new SolidColorBrush(Colors.Transparent),
+                        BorderThickness = new Thickness(0, 0, 0, 0),
+                        HorizontalAlignment=System.Windows.HorizontalAlignment.Stretch,
+                        VerticalAlignment=VerticalAlignment.Stretch,
+                    };
+                    richTextBox.Document = new FlowDocument();
+                    grid.RegisterName(name, richTextBox);
+                    grid.Children.Add(richTextBox);
+                    System.Windows.Controls.Panel.SetZIndex(this, 99);
+                }
+                var block = new Paragraph(new Run(message) { Foreground = new SolidColorBrush(Colors.Gray) { Opacity = 0.6 } });
+                richTextBox.Document.Blocks.Add(block);
+                richTextBox.ScrollToEnd();
+                await Task.Delay(delay);
+                richTextBox.Document.Blocks.Remove(block);
+                return richTextBox;
             });
         }
     }

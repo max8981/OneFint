@@ -36,6 +36,8 @@ namespace Client_Wpf
 
         [DllImport("user32.dll", SetLastError = false)]
         private extern static IntPtr MonitorFromPoint(POINT pt, uint dwFlags);
+        [DllImport("user32.dll", SetLastError = false)]
+        private extern static long SetDisplayConfig(uint numPathArrarElements,IntPtr pathArray,uint numModeArrayElements,IntPtr modeArray,uint flags);
 
         [DllImport("dxva2.dll", SetLastError = true)]
         private extern static bool GetPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, uint dwPhysicalMonitorArraySize, [Out] PHYSICAL_MONITOR[] pPhysicalMonitorArray);
@@ -123,6 +125,23 @@ namespace Client_Wpf
             {
                 throw new Win32Exception(Marshal.GetLastWin32Error());
             }
+        }
+        public static bool SetScreenMode(ScreenModeEnum screenMode)
+        {
+            var mode = screenMode switch
+            {
+                ScreenModeEnum.主屏 => (uint)(0x00000080 | 0x00000001),
+                ScreenModeEnum.复制 => (uint)(0x00000080 | 0x00000002),
+                ScreenModeEnum.扩展 => (uint)(0x00000080 | 0x00000004),
+                _ => (uint)(0x00000080 | 0x00000001),
+            };
+            return SetDisplayConfig(0, IntPtr.Zero, 0, IntPtr.Zero, mode) == 0;
+        }
+        public enum ScreenModeEnum
+        {
+            主屏,
+            复制,
+            扩展,
         }
     }
 }

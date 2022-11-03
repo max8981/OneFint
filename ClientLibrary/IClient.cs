@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClientLibrary.ClientToServer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,8 @@ namespace ClientLibrary
     {
         Action<DateTime> PowerOn { get; }
         Action<DateTime> PowerOff { get; }
-        Action Reboot { get; }
+        void ShutDown();
+        void Reboot();
         Action<int> SetVolume { get; }
         Action<int> ScreenPowerOff { get; }
         Action<int> ScreenPowerOn { get; }
@@ -18,10 +20,11 @@ namespace ClientLibrary
         Action DeleteTempFiles { get; }
         Action<string[]> DeleteFiles { get; }
         int Volume { get; }
-        void Save<T>(string key,T value);
-        T Load<T>(string key)where T:new();
+        void SaveConfiguration(string name,string value);
+        string LoadConfiguration(string name);
         Action<string, string> WriteLog { get;}
         UIs.IPageController[] PageControllers { get; set; }
+        void ShowMessage(string message, TimeSpan delay);
         ClientConfig Config { get; set; }
     }
 }

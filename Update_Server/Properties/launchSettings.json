@@ -2,6 +2,7 @@
   "profiles": {
     "Update_Server": {
       "commandName": "Project",
+      "commandLineArgs": "--urls http://0.0.0.0:80",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

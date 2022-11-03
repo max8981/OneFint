@@ -1,0 +1,44 @@
+﻿<Modal Title="@("创建新项目")"
+       Visible="@Visible"
+       OnOk="@HandleOk"
+       OnCancel="@HandleCancel"
+       ConfirmLoading="@_confirmLoading">
+    <p>@_modalText</p>
+    <Input Placeholder="项目名称" Disabled=@(Project!=null) @bind-Value="@name" />
+    <Input Placeholder="查询Key" Disabled=@(Project!=null) @bind-Value="@key"/>
+</Modal>
+
+
+@code {
+    [Parameter]
+    public Data.Project Project { get; set; }
+    [Parameter]
+    public bool Visible { get; set; }
+    [Parameter]
+    public EventCallback<bool> VisibleChanged { get; set; }
+
+    bool _confirmLoading = false;
+    string _modalText = "创建新项目";
+    string name;
+    string key;
+    private async Task HandleOk(MouseEventArgs e)
+    {
+        _modalText = "正在创建...";
+        _confirmLoading = true;
+        Project = new Data.Project()
+            {
+                Name = name,
+                Key = key,
+            };
+        Project.Save();
+        StateHasChanged();
+        Visible = false;
+        _confirmLoading = false;
+    }
+
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine("Clicked cancel button");
+        Visible = false;
+    }
+}

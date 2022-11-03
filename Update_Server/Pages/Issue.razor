@@ -1,0 +1,110 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using System.Text.Json;
+@inject IWebHostEnvironment env;
+<Modal Title="@("发布")"
+       Visible="@Visible"
+       OnOk="@HandleOk"
+       OnCancel="@HandleCancel"
+       ConfirmLoading="@_confirmLoading">
+    <p>@_modalText</p>
+    <Input Placeholder="1.0.0.0" @bind-Value="@_version"/>
+    <Switch Checked="true" CheckedChildren="强制开" UnCheckedChildren="强制关" @bind-Value=_mandatory />
+    <Select TItem="String"
+            TItemValue="string"
+            DataSource="@_versions"
+            @bind-Value="@_minumversion"
+            Placeholder="Select a person"
+            DefaultActiveFirstOption="false"
+            EnableSearch
+            OnSelectedItemChanged="OnSelectedItemChangedHandler">
+    </Select>
+    <TextArea Rows="4" OnChange="_=>_changelog=_" />
+    <UploadFiles Path="@id.ToString()"/>
+</Modal>
+
+
+@code {
+    [Parameter]
+    public Data.Project? Project{ get; set; }
+    bool visible;
+    [Parameter]
+    public bool Visible {
+        get => visible & Project!=null;
+        set { if (value != visible)
+            {
+                visible = value; 
+                VisibleChanged.InvokeAsync(value);
+            }
+        } }
+    [Parameter]
+    public EventCallback<bool> VisibleChanged { get; set; }
+    Guid id = Guid.NewGuid();
+    string tempPath => Path.Combine(env.ContentRootPath, "upload", id.ToString());
+    bool _confirmLoading = false;
+    string _modalText = "Content of the modal";
+    string _version{ get; set; }
+    bool _mandatory{ get; set; }
+    string[]? _versions => Project?.Packages.Select(_ => _.Version).ToArray();
+    string? _minumversion{ get; set; }
+    string? _changelog { get; set; }
+    private void OnSelectedItemChangedHandler(string value)
+    {
+        _minumversion = value;
+    }
+
+
+    private async Task HandleOk(MouseEventArgs e)
+    {
+        _modalText = "正在打包...";
+        _confirmLoading = true;
+        StateHasChanged();
+        if (System.IO.Directory.Exists(tempPath)){
+            var package = await GetPackage(id,tempPath);
+            Project?.Packages.Add(package);
+            Project?.Save();
+        }
+        DeleteTempPath();
+        Visible = false;
+        _confirmLoading = false;
+    }
+
+    private void HandleCancel(MouseEventArgs e)
+    {
+        Console.WriteLine("Clicked cancel button");
+        DeleteTempPath();
+        Visible = false;
+    }
+    private async Task<Data.Package> GetPackage(Guid id, string path)
+    {
+        string zipPath = Path.Combine(env.ContentRootPath, "upload", $"{id.ToString()}.zip");
+        await Task.Run(() =>
+        {
+            System.IO.Compression.ZipFile.CreateFromDirectory(path, zipPath);
+        });
+        using var fs = System.IO.File.OpenRead(zipPath);
+        using var c = System.Security.Cryptography.MD5.Create();
+        var md5hash = c.ComputeHash(fs);
+        var hexstring = md5hash.Aggregate(string.Empty, (res, b) => res + b.ToString("X2"));
+        if (string.IsNullOrEmpty(_changelog))
+            _changelog = "";
+        if (string.IsNullOrEmpty(_minumversion))
+            _minumversion = "0.0.0.0";
+        var result = new Data.Package()
+            {
+                Id = id,
+                Version = _version,
+                PackagePath=zipPath,
+                MD5=hexstring,
+                CreateDate=DateTime.Now,
+                Changelogs=_changelog.Split('\r'),
+                Mandatory=_mandatory,
+                MinimumVersion=_minumversion,
+                ProjectId=Project?.Id,
+            };
+        return result;
+    }
+    private void DeleteTempPath(){
+        if (System.IO.Directory.Exists(tempPath))
+            System.IO.Directory.Delete(tempPath, true);
+    }
+}

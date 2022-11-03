@@ -13,5 +13,6 @@ namespace Client_Wpf
     /// </summary>
     public partial class App : Application
     {
+        public static Action<string, TimeSpan> ShowMessage { get; set; } = (s, d) => { };
     }
 }

@@ -5,7 +5,9 @@ using ClientLibrary.UIs;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 namespace ClientLibrary
@@ -21,6 +23,7 @@ namespace ClientLibrary
         private int _lastvol;
         public ClientController(IClient client)
         {
+            Downloader.SendDownloadStatus = MaterialDownloadStatus;
             _client = client;
             _uIController = new(client.PageControllers);
             _mqtt = new(_client)
@@ -28,13 +31,28 @@ namespace ClientLibrary
                 Receive = ReceiveTopics
             };
             _timer = new(1000) { AutoReset = true };
+            int t = 0;
             _timer.Elapsed += (o, e) =>
             {
                 var now = e.SignalTime;
+                t++;
                 TimingBoot(now);
                 TimingVolume(now);
-                if (now.Second % 10 == 0)
+                if (t == _client.Config.HeartBeatSecond)
+                {
                     HeartBeat();
+                    t = 0;
+                }
+                if (_client.Config.AutoReboot && (int)now.TimeOfDay.TotalSeconds == 3 * 60 * 60)
+                    Task.Factory.StartNew(async () =>
+                    {
+                        await Task.Delay(new Random().Next(0, 3600));
+                        _client.Reboot();
+                    });
+            };
+            _mqtt.Connected = () =>
+            {
+                Reconnect();
             };
             Connect();
             _timer.Start();
@@ -46,6 +64,9 @@ namespace ClientLibrary
         private void ReceiveTopics(ServerToClient.TopicTypeEnum topic, string json)
         {
             _client.WriteLog(topic.ToString(), json);
+#if DEBUG
+            System.IO.File.WriteAllText($"./log/{topic}-{DateTime.Now:HH-mm-ss-FF}.txt", json);
+#endif
             switch (topic)
             {
                 case ServerToClient.TopicTypeEnum.delete_material:
@@ -92,6 +113,11 @@ namespace ClientLibrary
                                     AddTimingVolumePolicy(policy);
                     }
                     break;
+                case ServerToClient.TopicTypeEnum.order:
+                    if (TryGetOrder(json, out var order))
+                        if (order != null)
+                            Order(order);
+                    break;
             }
         }
         internal void DeleteMaterial(ServerToClient.DeleteMaterial delete)
@@ -104,12 +130,12 @@ namespace ClientLibrary
                         var id = material.Id;
                         var ext = Path.GetExtension(uri.Segments.Last());
                         var file = Path.Combine(_client.Config.MaterialPath, $"{id}{ext}");
-                        _client.DeleteFiles(new string[] { file });
+                        DeleteFiles(new string[] { file });
                     }
             if (delete.DeleteAll)
             {
                 var files = System.IO.Directory.GetFiles(_client.Config.MaterialPath);
-                _client.DeleteFiles(files);
+                DeleteFiles(files);
             }
         }
         internal void MaterialDownloadUrl(ServerToClient.MaterialDownloadUrl material)
@@ -120,8 +146,8 @@ namespace ClientLibrary
             if (!string.IsNullOrEmpty(material.Url))
             {
                 var url = material.Url;
-                var task = Downloader.GetOrAddTask(id, url);
-                task.CompleteCallback += o => MaterialDownloadStatus(new ClientToServer.MaterialDownloadStatus(id, true, deviceId, deviceGroupId));
+                //var task = Downloader.GetOrAddTask(id, url,id, deviceId, deviceGroupId);
+                //task.CompleteCallback += o => MaterialDownloadStatus(new ClientToServer.MaterialDownloadStatus(id, true, deviceId, deviceGroupId));
             }
         }
         internal void AddTimingBootPolicy(Models.TimingBootPolicy policy)
@@ -138,13 +164,13 @@ namespace ClientLibrary
             {
                 _ = DateTime.TryParse(timingboot.StartedAt, out var start);
                 _ = DateTime.TryParse(timingboot.EndedAt, out var end);
-                if(end.TimeOfDay.TotalSeconds== now.TimeOfDay.TotalSeconds)
+                if(end.TimeOfDay.TotalSeconds== (int)now.TimeOfDay.TotalSeconds)
                 {
+                    start = DateTime.Today.AddSeconds(start.TimeOfDay.TotalSeconds);
                     switch (timingboot.LoopType)
                     {
                         case Enums.LoopTypeEnum.EVERYDAY:
                             _client.PowerOn(start);
-                            _client.PowerOff(now);
                             break;
                         case Enums.LoopTypeEnum.SOMEDAY:
                             if (timingboot.Weekdays != null)
@@ -152,12 +178,10 @@ namespace ClientLibrary
                                     if (timingboot.Weekdays.Days.Contains((Enums.WeekdayEnum)now.DayOfWeek))
                                     {
                                         _client.PowerOn(start);
-                                        _client.PowerOff(now);
                                     }
                             break;
                         default:
                             _client.PowerOn(start);
-                            _client.PowerOff(now);
                             break;
                     }
                 }
@@ -181,13 +205,42 @@ namespace ClientLibrary
                 }
             }
         }
+        private void Order(Models.Order order)
+        {
+            switch (order.OrderEnum)
+            {
+                case Enums.OrderEnum.SHUTDOWN:
+                    _client.ShutDown();
+                    break;
+                case Enums.OrderEnum.REBOOT:
+                    _client.Reboot();
+                    break;
+                case Enums.OrderEnum.SCREEN_BOOT:
+                    _client.ScreenPowerOn(0);
+                    break;
+                case Enums.OrderEnum.SCREEN_SHUTDOWN:
+                    _client.ScreenPowerOff(0);
+                    break;
+                case Enums.OrderEnum.CLEAN_UP_CACHE:
+                    _client.DeleteFiles(System.IO.Directory.GetFiles(_client.Config.MaterialPath));
+                    break;
+                case Enums.OrderEnum.VOLUME_CONTROL:
+                    var vol = (int)Math.Clamp(order.Volume * 6.66, 0, 100);
+                    _client.SetVolume(vol);
+                    break;
+            }
+        }
         private void HeartBeat()
         {
             _mqtt.Send(ClientToServer.TopicTypeEnum.heartbeat, JsonSerializer.Serialize(new ClientToServer.HeartBeat(_client.Config.Code)));
         }
         private void MaterialDownloadStatus(MaterialDownloadStatus status)
         {
-            _mqtt.Send(ClientToServer.TopicTypeEnum.heartbeat, JsonSerializer.Serialize(status));
+            _mqtt.Send(ClientToServer.TopicTypeEnum.material_download_status, JsonSerializer.Serialize(status));
+        }
+        private void Reconnect()
+        {
+            _mqtt.Send(ClientToServer.TopicTypeEnum.reconnect, JsonSerializer.Serialize(new ClientToServer.Reconnect(_client.Config.Code)));
         }
         private bool TryFromJson<T>(string json, out T? result) where T : Topic
         {
@@ -198,14 +251,32 @@ namespace ClientLibrary
             }
             return false;
         }
+        private bool TryGetOrder(string json,out Models.Order? order)
+        {
+            var result = JsonSerializer.Deserialize<ServerToClient.ClientControl>(json);
+            order = result?.Order;
+            return order?.Code == _client.Config.Code;
+        }
+        private void DeleteFiles(string[] files)
+        {
+            foreach (var file in files)
+            {
+                try
+                {
+                    System.IO.File.Delete(file);
+                }
+                catch
+                {
+                    _client.DeleteFiles(new string[] { file });
+                }
+            }
+        }
         public void Close()
         {
             _timer.Close();
             _mqtt.Close();
             _uIController.Close();
         }
-        public void SetDelayedUpdate(bool b) => _uIController.SetDelayedUpdate(b);
-        public void SetShowDownloader(bool b) => _uIController.SetShowDownloader(b);
         ~ClientController()
         {
             Close();

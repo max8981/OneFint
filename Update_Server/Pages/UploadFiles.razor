@@ -1,16 +1,39 @@
-﻿<Upload Action="/api/file/upload" Directory OnSingleCompleted="OnSingleCompleted">
+﻿<Upload Action="@address" Directory=false OnSingleCompleted="OnSingleCompleted" Name="file" BeforeUpload="Check" Multiple=true>
     <Button Icon="upload">
         <span>Upload Directory</span>
     </Button>
 </Upload>
 
-@code{
+@code {
+    [Parameter]
+    public string? Path{ get; set; }
+    string? address;
+    bool Check(UploadFileItem item){
+        return true;
+    }
+    protected override void OnInitialized()
+    {
+        address = $"/api/file/uploadfile?path={Path}";
+        base.OnInitialized();
+    }
     void OnSingleCompleted(UploadInfo fileinfo)
     {
         if (fileinfo.File.State == UploadState.Success)
         {
-            var result = fileinfo.File.GetResponse<Controllers.FileController.ResultModel>();
-            fileinfo.File.Url = result.Url;
+            var result = fileinfo.File.GetResponse<ResponseModel>();
+            fileinfo.File.Url = result.url;
         }
     }
+
+    public class ResponseModel
+    {
+        public string name { get; set; }
+
+        public string status { get; set; }
+
+        public string url { get; set; }
+
+        public string thumbUrl { get; set; }
+    }
+
 }

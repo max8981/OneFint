@@ -15,7 +15,7 @@ namespace ClientLibrary.UIs
         IExhibition TryAddExhibition(int id,string name, System.Drawing.Rectangle rectangle, int z);
         void ShowView();
         void ShowCode(string code);
-        void ShowMessage(string message,int time);
+        void ShowMessage(string message,TimeSpan delay);
         void Close();
         void Clear();
     }

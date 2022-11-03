@@ -1,0 +1,59 @@
+﻿<Issue @bind-Visible="issueVisible" Project="@Project" />
+<Descriptions Title="@Project?.Name" Bordered Column="@column">
+    <DescriptionsItem Title="Key">
+        @Project?.Key
+    </DescriptionsItem>
+    <DescriptionsItem Title="最新版本">@lastVersion</DescriptionsItem>
+    <DescriptionsItem Title="最后发布">@lastUpdate</DescriptionsItem>
+    <DescriptionsItem Title="操作">
+        <Button Disabled="@issueVisible" OnClick="()=>{issueVisible=true;}">发布新版本</Button>
+    </DescriptionsItem>
+    <DescriptionsItem Title="更新记录">
+        <div>
+            @if (packages == null || !packages.Any())
+            {
+                <Empty Description="false" />
+            }
+            else
+            {
+                <Timeline>
+                    @foreach (var item in packages)
+                    {
+                        <TimelineItem Label="@item.CreateDate.ToString()">@item.Version</TimelineItem>
+                    }
+                </Timeline>
+            }
+        </div>
+    </DescriptionsItem>
+</Descriptions>
+@code {
+    [Parameter]
+    public Data.Project? Project{ get; set; }
+    private Data.Package[]? packages;
+    private string? lastUpdate;
+    private string? lastVersion;
+    private Dictionary<string, int> column = new Dictionary<string, int> {
+            { "xxl", 3 },
+            { "xl", 3},
+            { "lg", 2},
+            { "md", 2},
+            { "sm", 1},
+            { "xs", 1}
+        };
+    bool visible = false;
+    bool issueVisible { 
+        get { return visible; } 
+        set { visible = value; } 
+    }
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if(Project!=null){
+            if (Project.Packages.Count>0){
+                packages = Project.Packages.OrderByDescending(_=>_.Version).ToArray();
+                lastUpdate = packages.First().CreateDate.ToString();
+                lastVersion = packages.First().Version;
+            }
+        }
+    }
+}

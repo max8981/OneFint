@@ -21,6 +21,7 @@ namespace ClientLibrary
         private readonly MqttClientOptions _options;
         private readonly IClient _client;
         internal Action<TopicTypeEnum, string> Receive = (t, j) => { };
+        internal Action Connected = () => { };
         internal Mqtt(IClient client)
         {
             _client = client;
@@ -29,12 +30,15 @@ namespace ClientLibrary
             _mqttClient.ConnectingAsync += _ =>
             {
                 _client.WriteLog("Mqtt-Connecting", $"{_.ClientOptions.WillContentType}");
+                _client.ShowMessage($"正在连接服务器", new TimeSpan(0, 0, 3));
                 return Task.CompletedTask;
             };
             _mqttClient.ConnectedAsync += _ =>
             {
                 _client.WriteLog("Mqtt-Connected", _.ConnectResult.ResultCode.ToString());
                 Subscribe();
+                _client.ShowMessage($"服务器连接成功", new TimeSpan(0, 0, 5));
+                Connected();
                 return Task.CompletedTask;
             };
             _mqttClient.ApplicationMessageReceivedAsync += arg =>
@@ -47,10 +51,12 @@ namespace ClientLibrary
             _mqttClient.DisconnectedAsync += _ =>
             {
                 _client.WriteLog("Mqtt-Disconnected", _.Reason.ToString());
+                _client.ShowMessage($"网络已断开", new TimeSpan(0, 0, 5));
                 return Task.CompletedTask;
             };
             _optionsBuilder = new MqttClientOptionsBuilder()
-                .WithWebSocketServer(_client.Config.Server)
+                .WithTcpServer(_client.Config.MqttServer,_client.Config.MqttPort)
+                //.WithWebSocketServer(_client.Config.Server)
                 .WithCredentials(_client.Config.MqttUser, _client.Config.MqttPassword);
             _options = _optionsBuilder.Build();
         }
@@ -63,6 +69,7 @@ namespace ClientLibrary
             catch (Exception ex)
             {
                 _client.WriteLog($"Mqtt-Connect-Exception", ex.Message);
+                _client.ShowMessage($"连接服务器失败：{ex.Message}",new TimeSpan(0,0,5));
             }
         }
         internal async void Send(ClientToServer.TopicTypeEnum topic, string json)
@@ -74,6 +81,7 @@ namespace ClientLibrary
             }
             else
             {
+                await _mqttClient.DisconnectAsync();
                 Connect();
             }
 

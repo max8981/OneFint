@@ -16,5 +16,6 @@ namespace ClientLibrary.ServerToClient
         emergency_content,
         timing_boot,
         timing_volume,
+        order,
     }
 }

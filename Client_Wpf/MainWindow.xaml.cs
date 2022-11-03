@@ -19,6 +19,8 @@ using System.Windows.Media.Animation;
 using System.Xml.Linq;
 using AutoUpdaterDotNET;
 using System.Text.Json.Serialization;
+using System.Linq;
+using System.Reflection;
 
 namespace Client_Wpf
 {
@@ -27,52 +29,60 @@ namespace Client_Wpf
     /// </summary>
     public partial class MainWindow : Window,ClientLibrary.IClient
     {
+        const string VERSION = "1.0.0.5";
         private readonly ClientController _controller;
         private readonly List<string> _deleteFiles;
-
-        public Action<DateTime> PowerOn { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Action<DateTime> PowerOn => o => WindowsController.PowerOffAtDatePowerOn(o);
         public Action<DateTime> PowerOff { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Action Reboot { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Action<int> SetVolume => o => WindowsController.SetVolume(o);
         public Action<int> ScreenPowerOff => o => WindowsController.ScreenPowerOff();
         public Action<int> ScreenPowerOn => o => WindowsController.ScreenPowerOn();
         public Action<int> ScreenBrightness => o => WindowsController.SetScreenBrightness(o);
         public Action DeleteTempFiles => () =>
         {
-            //System.IO.Directory.Delete(System.IO.Path.GetTempPath());
             foreach (var item in System.IO.Directory.GetFiles(System.IO.Path.GetTempPath()))
             {
                 System.IO.File.Delete(item);
             }
         };
         public Action<string, string> WriteLog => (t, c) => RichTextBoxWriteLog(t, c);
-
         public IPageController[] PageControllers { get; set; } 
-
         public ClientConfig Config { get; set; }
-
         public int Volume => WindowsController.GetVolume();
-
         public Action<string[]> DeleteFiles => o => _deleteFiles.AddRange(o);
         public MainWindow()
         {
+            WindowsController.SetAutoBoot();
             InitializeComponent();
+            App.ShowMessage = ShowMessage;
+            ScreenModeListBox.ItemsSource = Enum.GetValues(typeof(DisplayController.ScreenModeEnum));
+            var screen = System.Windows.Forms.Screen.AllScreens;
             _deleteFiles = new List<string>();
             WindowsController.PreventForCurrentThread();
-            Config = WindowsController.LoadConfiguration<ClientConfig>(nameof(Config));
-            Config.Code = Information.MachineCode;
-            serverTextBox.Text = Config.Server;
+            Config = new(this);
+            if (System.IO.File.Exists("./Client_Wpf.dll.config"))
+                Config.Load();
+            if (string.IsNullOrEmpty(Config.Code))
+                Config.Code = Information.MachineCode;
+            serverTextBox.Text = Config.MqttServer;
             usernameTextBox.Text = Config.MqttUser;
             passwordTextBox.Text = Config.MqttPassword;
             delayedUpdateCheckBox.IsChecked = Config.DelayedUpdate;
             showDownloaderCheckBox.IsChecked = Config.ShowDownloader;
-            PageControllers = new PageView[] { new PageView() };
-            foreach (var pageController in PageControllers)
+            PageControllers = new PageView[System.Windows.Forms.Screen.AllScreens.Length];
+            for (int i = 0; i < PageControllers.Length; i++)
             {
-                pageController.ShowCode(Config.Code);
-                pageController.ShowView();
+                PageControllers[i] = new PageView(System.Windows.Forms.Screen.AllScreens[i]);
+                PageControllers[i].ShowCode(Config.Code);
+                PageControllers[i].ShowView();
             }
             _controller = new(this);
+        }
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            var hwndSource = PresentationSource.FromVisual(this) as HwndSource;
+            hwndSource?.AddHook(new HwndSourceHook(WindowsController.WndProc));
         }
         private void RichTextBoxWriteLog(string title,string content)
         {
@@ -101,57 +111,31 @@ namespace Client_Wpf
         }
         internal void SetBrightnessValue(double d) => screenBrightness.Value = d;
         internal void SetVolumeValue(int vol) => systemVolume.Value = vol;
-        private void screenBrightness_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void ScreenBrightness_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            WindowsController.SetScreenBrightness(e.NewValue);
+            //WindowsController.SetScreenBrightness(e.NewValue);
         }
-        private void systemVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void SystemVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             WindowsController.SetVolume((int)e.NewValue);
         }
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            Config.Server = serverTextBox.Text.Trim();
+            var server= serverTextBox.Text.Trim();
+            Config.MqttServer = server.Split(':')[0];
+            if (server.Split(':').Length > 1)
+            {
+                if (int.TryParse(server.Split(':')[1], out var port))
+                    Config.MqttPort = port;
+            }
             Config.MqttUser = usernameTextBox.Text;
             Config.MqttPassword = passwordTextBox.Text;
-            Save(nameof(Config), Config);
+            Config.Save();
         }
-
-        public void Save<T>(string key, T value) => WindowsController.SaveConfiguration(key, value);
-
-        public T Load<T>(string key) where T : new() => WindowsController.LoadConfiguration<T>(key);
-
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _controller.Close();
-        }
-
-        private void CheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            if (sender is CheckBox check)
-                if (check.IsChecked.HasValue)
-                {
-                    if(Config.DelayedUpdate != check.IsChecked.Value)
-                    {
-                        Config.DelayedUpdate = check.IsChecked.Value;
-                        _controller.SetDelayedUpdate(Config.DelayedUpdate);
-                        Save(nameof(Config), Config);
-                    }
-                }
-        }
-
-        private void showDownloaderCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            if (sender is CheckBox check)
-                if (check.IsChecked.HasValue)
-                {
-                    if (Config.ShowDownloader != check.IsChecked.Value)
-                    {
-                        Config.ShowDownloader = check.IsChecked.Value;
-                        _controller.SetShowDownloader(Config.ShowDownloader);
-                        Save(nameof(Config), Config);
-                    }
-                }
+            Config.Save();
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -168,23 +152,81 @@ namespace Client_Wpf
                 }
 
             }
-            var a = Process.GetCurrentProcess();
             WindowsController.RestoreForCurrentThread();
             Process.GetCurrentProcess().Kill();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            AutoUpdater.InstalledVersion = new Version("1.1");
+            AutoUpdater.InstalledVersion = new Version(VERSION);
             AutoUpdater.RunUpdateAsAdmin = false;
             AutoUpdater.Mandatory = true;
             AutoUpdater.UpdateMode = Mode.ForcedDownload;
             AutoUpdater.ParseUpdateInfoEvent += o =>
             {
-                var info = JsonSerializer.Deserialize<AutoUpdaterDotNET.UpdateInfoEventArgs>(o.RemoteData,new JsonSerializerOptions {PropertyNameCaseInsensitive=true });
-                o.UpdateInfo = info;
+                try
+                {
+                    var info = JsonSerializer.Deserialize<AutoUpdaterDotNET.UpdateInfoEventArgs>(o.RemoteData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    o.UpdateInfo = info;
+                }
+                catch
+                {
+
+                }
+
             };
-            AutoUpdater.Start("http://localhost:5000/api/update");
+            AutoUpdater.Start(Config.UpdateUrl);
+        }
+
+        private void ScreenModeListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var s = e.AddedItems[0];
+            if (s != null)
+            {
+                var o = s.ToString();
+                DisplayController.SetScreenMode((DisplayController.ScreenModeEnum)Enum.Parse(typeof(DisplayController.ScreenModeEnum), o!));
+            }
+        }
+
+        public void ShowMessage(string message, TimeSpan delay)
+        {
+            foreach (var page in PageControllers)
+            {
+                page.ShowMessage(message, delay);
+            }
+        }
+
+        public void SaveConfiguration(string name, string value) => WindowsController.SaveConfiguration(name, value);
+
+        public string LoadConfiguration(string name) => WindowsController.LoadConfiguration(name);
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            WindowsController.Reboot();
+        }
+
+        public void ShutDown()
+        {
+            WindowsController.ShutDown();
+        }
+
+        public void Reboot()
+        {
+            WindowsController.Reboot();
+        }
+        private void DelayedUpdateCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            var value = delayedUpdateCheckBox.IsChecked ?? true;
+            Config.DelayedUpdate = value;
+            ExhibitionController.SetDelayedUpdate(value);
+            Config.Save();
+        }
+
+        private void ShowDownloaderCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            var value = showDownloaderCheckBox.IsChecked ?? true;
+            Config.DelayedUpdate = value;
+            ExhibitionController.SetShowDownloader(value);
+            Config.Save();
         }
     }
 }

@@ -33,6 +33,11 @@ namespace Test
             throw new NotImplementedException();
         }
 
+        public void ShowMessage(string message, TimeSpan delay)
+        {
+            throw new NotImplementedException();
+        }
+
         public void ShowView()
         {
             throw new NotImplementedException();

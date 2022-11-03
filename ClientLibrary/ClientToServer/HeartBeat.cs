@@ -12,6 +12,7 @@ namespace ClientLibrary.ClientToServer
         {
             Code = code;
         }
+        public HeartBeat() { }
 
         [JsonPropertyName("code")]
         public string Code { get; set; }

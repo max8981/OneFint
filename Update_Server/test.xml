@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<item>
+  <version>1.0.0.0</version>
+  <url>http://yuxtech.com:20000/api/update/GetPackage?key=test</url>
+  <changelog>http://yuxtech.com:20000/Changelog?key=test</changelog>
+  <mandatory minVersion="0.0.0.0" mode="2">False</mandatory>
+  <checksum algorithm="MD5">483F4193EC66E0DF9E24426B8370E36C</checksum>
+</item>

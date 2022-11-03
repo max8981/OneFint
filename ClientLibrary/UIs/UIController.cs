@@ -12,6 +12,7 @@ namespace ClientLibrary.UIs
     {
         private readonly IPageController[] _pageControllers;
         private readonly Dictionary<int, ExhibitionController> _exhibitions;
+        private int layoutId = 0;
         public UIController(IPageController[] pageControllers)
         {
             _exhibitions = new();
@@ -41,9 +42,11 @@ namespace ClientLibrary.UIs
         {
             SetLayout(baseContent.Layout);
             if (baseContent.NewFlashContentPayloads != null)
+            {
                 foreach (var newFlash in baseContent.NewFlashContentPayloads)
                     if (newFlash.NewFlashContent != null && newFlash.NewFlashContent.Component != null)
                         _exhibitions[newFlash.NewFlashContent.Component.Id].AddNewFlashContent(newFlash);
+            }
         }
         public void DeleteNewFlashContent(DeleteNewFlashContent deleteNewFlash)
         {
@@ -58,14 +61,19 @@ namespace ClientLibrary.UIs
         }
         private void SetLayout(Models.Layout? layout)
         {
-            var pageController = _pageControllers.First();
-            pageController.Clear();
-            pageController.ShowView();
-            if (layout!=null&&layout.Content!=null&&layout.Content.Pages!=null)
-                foreach (var page in layout.Content.Pages)
-                    if (page.Components != null)
-                        foreach (var component in page.Components)
-                            AddComponent(component);
+            if (layoutId!=layout?.Id)
+            {
+                _exhibitions.Clear();
+                layoutId = layout == null ? 0 : layout.Id;
+                var pageController = _pageControllers.First();
+                pageController.Clear();
+                pageController.ShowView();
+                if (layout != null && layout.Content != null && layout.Content.Pages != null)
+                    foreach (var page in layout.Content.Pages)
+                        if (page.Components != null)
+                            foreach (var component in page.Components)
+                                AddComponent(component);
+            }
         }
         private void AddComponent(Models.Component component)
         {
@@ -110,20 +118,6 @@ namespace ClientLibrary.UIs
                     foreach (var content in item)
                         if (item.Key.HasValue)
                             _exhibitions[item.Key.Value].AddContent(content);
-            }
-        }
-        internal void SetDelayedUpdate(bool b)
-        {
-            foreach (var exhibition in _exhibitions.Values)
-            {
-                exhibition.SetDelayedUpdate(b);
-            }
-        }
-        internal void SetShowDownloader(bool b)
-        {
-            foreach (var exhibition in _exhibitions.Values)
-            {
-                exhibition.SetShowDownloader(b);
             }
         }
         internal void Close()

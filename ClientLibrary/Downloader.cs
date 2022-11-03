@@ -1,4 +1,5 @@
-﻿using DownloadQueue;
+﻿using ClientLibrary.ClientToServer;
+using DownloadQueue;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -19,14 +20,15 @@ namespace ClientLibrary
         private static string materialPath = "./materials";
         private static readonly DownloadQueue.DownloadQueue downloadQueue = new();
         private static readonly ConcurrentDictionary<int, DownloadTask> _taskQueue = new();
-        public static DownloadTask GetOrAddTask(int id,string url,string? name=null)
+        public static DownloadTask GetOrAddTask(int id,string url,int mId,int? deviceId,int? groupId)
         {
             if(!_taskQueue.TryGetValue(id,out var task))
             {
                 var filename = new Uri(url).Segments.Last();
                 var ext = Path.GetExtension(filename);
-                name ??= $"{id}{ext}";
+                var name = $"{id}{ext}";
                 task = new(id, url, name);
+                task.CompleteCallback = o => SendDownloadStatus(new MaterialDownloadStatus(mId, true, deviceId, groupId));
                 if (!task.IsComplete)
                     task.Start();
             }
@@ -34,6 +36,8 @@ namespace ClientLibrary
         }
         public static void SetMaterialsPath(string path)
         {
+            if (string.IsNullOrWhiteSpace(path))
+                path = "./materials";
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -51,6 +55,7 @@ namespace ClientLibrary
                 _ => $"{value}B",
             };
         }
+        public static Action<MaterialDownloadStatus> SendDownloadStatus = o => { };
         ~Downloader()
         {
             downloadQueue.Dispose();

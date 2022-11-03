@@ -1,0 +1,45 @@
+﻿<Button Type="primary" OnClick="()=>{createNew=true;}">添加新项目</Button>
+<CreateNewProject @bind-Visible="@createNew"/>
+<Collapse Accordion>
+    @foreach (var item in Projects)
+    {
+        <Panel Header="@item.Name" Key="@item.Id.ToString()">
+            <PackageList Project="item"/>
+        </Panel>
+    }
+</Collapse>
+
+@code {
+    bool createNew = false;
+    Data.Project? project;
+    static RenderFragment avatar =@<Avatar Src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"></Avatar>;
+
+    static RenderFragment<Data.Project> edit = content =>
+    @<Template>
+            <Button ></Button>
+    </Template>;
+
+    static RenderFragment add = @<a key="list-loadmore-more">more</a>;
+
+    public Data.Project[] Projects { get; set; }
+
+    public bool InitLoading { get; set; } = true;
+
+    public bool Loading { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Projects = Data.Project.GetProjects();
+        InitLoading = false;
+        await base.OnInitializedAsync();
+    }
+    private void EditProject(Data.Project project){
+        this.project = project;
+        createNew = true;
+    }
+
+    public void ItemClick(string title)
+    {
+        Console.WriteLine($"item was clicked: {title}");
+    }
+}

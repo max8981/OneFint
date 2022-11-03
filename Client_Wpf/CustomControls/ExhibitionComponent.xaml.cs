@@ -10,6 +10,8 @@ using System.Reflection;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Media.Animation;
+using System.IO;
+using Microsoft.Web.WebView2.Wpf;
 
 namespace Client_Wpf
 {
@@ -134,7 +136,7 @@ namespace Client_Wpf
                     grid.RegisterName("image", image);
                     _elements.Add(id, image);
                 }
-                image.Source = new BitmapImage(new Uri(source));
+                image.Source = GetImage(source);
                 image.Visibility = Visibility.Visible;
             });
         }
@@ -153,7 +155,7 @@ namespace Client_Wpf
                             Name = name,
                             Margin = new Thickness(0, 0, 0, 0),
                             TextWrapping=TextWrapping.WrapWithOverflow,
-                            Background= new SolidColorBrush(Colors.Transparent),
+                            //Background= new SolidColorBrush(Colors.Transparent),
                     };
                         grid.Children.Add(textBlock);
                         grid.RegisterName(name, textBlock);
@@ -203,6 +205,7 @@ namespace Client_Wpf
                 }
                 mediaElement.Source = new Uri(source);
                 mediaElement.Volume = mute ? 0 : 1;
+                mediaElement.Stop();
                 mediaElement.Play();
                 mediaElement.Visibility = Visibility.Visible;
             });
@@ -210,6 +213,8 @@ namespace Client_Wpf
 
         public void ShowWeb(int id,string? url)
         {
+            //ShowWebView2(id, url);
+            //return;
             Dispatcher.BeginInvoke(() =>
             {
                 Hidden();
@@ -223,7 +228,7 @@ namespace Client_Wpf
                     {
                         webBrowser.InvokeScript("execScript", new object[] { script, "JavaScript" });
                     };
-                    //webBrowser.Navigated += (o, e) => webBrowser.Visibility = Visibility.Visible;
+                    webBrowser.Navigated += (o, e) => webBrowser.Visibility = Visibility.Visible;
                     _elements.Add(id, webBrowser);
                 }
                 if ((string)webBrowser.Tag != url)
@@ -241,6 +246,27 @@ namespace Client_Wpf
                         objComWebBrowser.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, objComWebBrowser, new object[] { true });
                     }
                 }
+            });
+        }
+        public void ShowWebView2(int id,string? url)
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                Hidden();
+                if (grid.FindName("web") is not WebView2 webBrowser)
+                {
+                    webBrowser = new();
+                    grid.Children.Add(webBrowser);
+                    grid.RegisterName("web", webBrowser);
+                    webBrowser.Loaded += (o, e) => webBrowser.Visibility = Visibility.Visible;
+                    _elements.Add(id, webBrowser);
+                }
+                if ((string)webBrowser.Tag != url)
+                {
+                    webBrowser.Source = new Uri(url);
+                    webBrowser.Tag = url;
+                }
+                webBrowser.Visibility = Visibility.Visible;
             });
         }
         private static Brush? GetBrush(string? colorString)
@@ -307,6 +333,20 @@ namespace Client_Wpf
                                 1);
             Size size = new Size(formattedText.Width, formattedText.Height);
             return size.Width;
+        }
+        private static BitmapImage GetImage(string imagePath)
+        {
+            BitmapImage bitmap = new();
+            if (File.Exists(imagePath))
+            {
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                using Stream ms = new MemoryStream(File.ReadAllBytes(imagePath));
+                bitmap.StreamSource = ms;
+                bitmap.EndInit();
+                bitmap.Freeze();
+            }
+            return bitmap;
         }
     }
 }
