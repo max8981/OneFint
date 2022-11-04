@@ -65,7 +65,7 @@ namespace Client_Wpf
         {
             var mac = GetMacByNetworkInterface();
             var arr = mac.Split("-");
-            return string.Join(":", arr.Skip(2));
+            return string.Join(":", arr);
         }
         public static string GetByteString(double value, int mod)
         {

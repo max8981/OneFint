@@ -86,8 +86,7 @@ namespace ClientLibrary.UIs
                     _emergencyContents.Clear();
                     break;
             }
-            if (!_isDelayedUpdate)
-                _stopPlay = true;
+            _stopPlay = !_isDelayedUpdate;
         }
         public void RemoveNewFlashContent(int id)
         {
@@ -107,11 +106,13 @@ namespace ClientLibrary.UIs
                 _stopPlay = false;
                 Models.Content content;
                 bool isEmpty;
+                //SpinWait.SpinUntil(() => !isEmpty, 100);
+                _exhibition.Hidden();
                 if (isEmpty = !GetContent(_emergencyContents, out content!))
                     if (isEmpty = !GetNewFlashContent(_newFlashContents, out content!))
                         if (isEmpty = !GetContent(_normalContents, out content!))
                             if (isEmpty = !GetContent(_defaultContents, out content!))
-                                SpinWait.SpinUntil(() => !isEmpty, 100);
+                                continue;
                 if (content != null&&content.Material!=null)
                 {
                     switch (content.Material.MaterialType)
@@ -195,30 +196,16 @@ namespace ClientLibrary.UIs
                     {
                         if (DateTime.Now > start)
                         {
-                            if (Payload.LoopTime.HasValue)
+                            if (Payload.LoopTime.HasValue && Payload.LoopTime > 0)
                             {
-                                if (Payload.LoopTime.Value > 0)
-                                {
-                                    result = true;
-                                    Payload.LoopTime--;
-                                }
-                                else
-                                {
-                                    RemoveNewFlashContent(content.Id);
-                                    result = GetNewFlashContent(newFlashContents, out content);
-                                }
-                            }
+                                result = true;
+                                Payload.LoopTime--;
+                            } else if (DateTime.TryParse(Payload.EndAt, out var endtime))
+                                result = DateTime.Now < endtime;
                             else
                             {
-                                if (DateTime.TryParse(Payload.EndAt, out var endtime))
-                                    if (DateTime.Now < endtime)
-                                        result = true;
-                                    else
-                                    {
-                                        RemoveNewFlashContent(content.Id);
-                                        result = GetNewFlashContent(newFlashContents, out content);
-                                    }
-
+                                RemoveNewFlashContent(content.Id);
+                                result = GetNewFlashContent(newFlashContents, out content);
                             }
                         }
                         newFlashContents.Enqueue(Payload);

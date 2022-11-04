@@ -13,7 +13,7 @@ namespace ClientLibrary.Models
         /// 组件UUID
         /// </summary>
         [JsonPropertyName("uuid")]
-        public Guid Uuid { get; set; }
+        public string? Uuid { get; set; }
         /// <summary>
         /// 组件name
         /// </summary>

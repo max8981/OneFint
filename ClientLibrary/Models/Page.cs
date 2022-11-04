@@ -8,7 +8,7 @@
         /// UUID唯一
         /// </summary>
         [JsonPropertyName("uuid")]
-        public Guid Uuid { get; set; }
+        public string? Uuid { get; set; }
         /// <summary>
         /// 页面名称
         /// </summary>

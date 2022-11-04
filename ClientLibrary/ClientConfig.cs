@@ -11,6 +11,7 @@ namespace ClientLibrary
         public ClientConfig(IClient client)
         {
             _client = client;
+            Code = "";
             MqttServer = "47.101.178.160";
             MqttPort = 1883;
             MqttUser = "admin";
@@ -20,7 +21,7 @@ namespace ClientLibrary
             UpdateUrl = "http://yuxtech.com:20000/api/Update/GetVersion?key=c1";
         }
         private readonly IClient _client;
-        public string? Code { get; set; }
+        public string Code { get; set; }
         public string MqttServer { get; set; }
         public int MqttPort { get; set; }
         public string MqttUser { get; set; }
@@ -45,12 +46,15 @@ namespace ClientLibrary
         {
             Code = _client.LoadConfiguration(nameof(Code));
             MqttServer= _client.LoadConfiguration(nameof(MqttServer));
+            if (int.TryParse(_client.LoadConfiguration(nameof(MqttPort)), out var port))
+                MqttPort = port;
             MqttUser= _client.LoadConfiguration(nameof(MqttUser));
             MqttPassword=_client.LoadConfiguration(nameof(MqttPassword));
             HeartBeatSecond = int.TryParse(_client.LoadConfiguration(nameof(HeartBeatSecond)), out var number) ? number : 10;
             MaterialPath = _client.LoadConfiguration(nameof(MaterialPath));
             DelayedUpdate = !bool.TryParse(_client.LoadConfiguration(nameof(DelayedUpdate)), out var delayeUpdate) || delayeUpdate;
             ShowDownloader = !bool.TryParse(_client.LoadConfiguration(nameof(ShowDownloader)), out var showDownloader) || showDownloader;
+            UpdateUrl = _client.LoadConfiguration(nameof(UpdateUrl));
             return this;
         }
         

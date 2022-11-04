@@ -65,7 +65,7 @@ namespace ClientLibrary
         {
             _client.WriteLog(topic.ToString(), json);
 #if DEBUG
-            System.IO.File.WriteAllText($"./log/{topic}-{DateTime.Now:HH-mm-ss-FF}.txt", json);
+            //System.IO.File.WriteAllText($"./log/{topic}-{DateTime.Now:HH-mm-ss-FF}.txt", json);
 #endif
             switch (topic)
             {
@@ -244,12 +244,17 @@ namespace ClientLibrary
         }
         private bool TryFromJson<T>(string json, out T? result) where T : Topic
         {
-            result = JsonSerializer.Deserialize<T>(json);
-            if (result?.Code == _client.Config.Code)
+            result = null;
+            try
             {
-                return true;
+                result = JsonSerializer.Deserialize<T>(json);
+                return result?.Code == _client.Config.Code;
             }
-            return false;
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
         }
         private bool TryGetOrder(string json,out Models.Order? order)
         {

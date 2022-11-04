@@ -50,9 +50,17 @@ namespace Client_Wpf
             }
             else
             {
-                foreach (FrameworkElement element in grid.Children)
+                try
                 {
-                    Dispatcher.Invoke(() => element.Visibility = Visibility.Hidden);
+                    Dispatcher.Invoke(() =>
+                    {
+                        foreach (FrameworkElement element in grid.Children)
+                            element.Visibility = Visibility.Hidden;
+                    });
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
                 }
             }
             Dispatcher.Invoke(() => grid.Background = new SolidColorBrush(Colors.Transparent));

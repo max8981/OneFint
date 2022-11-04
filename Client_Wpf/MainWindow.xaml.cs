@@ -62,7 +62,7 @@ namespace Client_Wpf
             Config = new(this);
             if (System.IO.File.Exists("./Client_Wpf.dll.config"))
                 Config.Load();
-            if (string.IsNullOrEmpty(Config.Code))
+            if (Config.Code=="")
                 Config.Code = Information.MachineCode;
             serverTextBox.Text = Config.MqttServer;
             usernameTextBox.Text = Config.MqttUser;
