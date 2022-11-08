@@ -74,17 +74,23 @@ namespace ClientLibrary
         }
         internal async void Send(ClientToServer.TopicTypeEnum topic, string json)
         {
-            if (_mqttClient.IsConnected)
+            try
             {
-                await _mqttClient.PublishStringAsync(topic.ToString(), json);
-                _client.WriteLog($"Mqtt-Send-{topic}", $"{json}");
+                if (_mqttClient.IsConnected)
+                {
+                    await _mqttClient.PublishStringAsync(topic.ToString(), json);
+                    _client.WriteLog($"Mqtt-Send-{topic}", $"{json}");
+                }
+                else
+                {
+                    await _mqttClient.DisconnectAsync();
+                    Connect();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await _mqttClient.DisconnectAsync();
-                Connect();
+                _client.WriteLog($"Mqtt-Send", $"{ex.Message}");
             }
-
         }
         internal void Close()
         {
