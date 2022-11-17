@@ -32,6 +32,7 @@ namespace ClientLibrary
         public bool DelayedUpdate { get; set; }
         public bool ShowDownloader { get; set; }
         public bool AutoReboot { get; set; }
+        public int GuardInterval { get; set; }
         public void Save()
         {
             foreach (var item in GetType().GetProperties())
@@ -55,6 +56,7 @@ namespace ClientLibrary
             DelayedUpdate = !bool.TryParse(_client.LoadConfiguration(nameof(DelayedUpdate)), out var delayeUpdate) || delayeUpdate;
             ShowDownloader = !bool.TryParse(_client.LoadConfiguration(nameof(ShowDownloader)), out var showDownloader) || showDownloader;
             UpdateUrl = _client.LoadConfiguration(nameof(UpdateUrl));
+            GuardInterval = int.TryParse(_client.LoadConfiguration(nameof(GuardInterval)), out var interval) ? interval : 30;
             return this;
         }
         

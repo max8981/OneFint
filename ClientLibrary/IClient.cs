@@ -13,6 +13,8 @@ namespace ClientLibrary
         Action<DateTime> PowerOff { get; }
         void ShutDown();
         void Reboot();
+        void ScreenActivation(bool activation);
+        void SetDate(DateTime date);
         Action<int> SetVolume { get; }
         Action<int> ScreenPowerOff { get; }
         Action<int> ScreenPowerOn { get; }

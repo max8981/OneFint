@@ -38,8 +38,8 @@ namespace Client_Wpf
             Topmost = true;
             Left = screen.Bounds.X;
             Top = screen.Bounds.Y;
-            Width = SystemParameters.PrimaryScreenWidth;
-            Height = SystemParameters.PrimaryScreenHeight;
+            base.Width = SystemParameters.PrimaryScreenWidth;
+            base.Height = SystemParameters.PrimaryScreenHeight;
             Activated += (o, e) => WindowsController.HiddenCursor();
             Deactivated += (o, e) => WindowsController.ShowCursor();
 #if DEBUG
@@ -126,7 +126,7 @@ namespace Client_Wpf
             }
         }
 
-        public void ShowView() => Dispatcher.Invoke(() => Show());
+        public void ShowView() => Dispatcher.Invoke(() => { Show();Activate();Focus(); });
         public void ShowCode(string code)
         {
             Dispatcher.Invoke(() => machineCodeLabel.Content = code);
@@ -160,5 +160,15 @@ namespace Client_Wpf
                 return richTextBox;
             });
         }
+
+        public void SetSize(int width, int height)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                base.Width = width;
+                base.Height = height;
+            });
+        }
+        public System.Drawing.Size GetSize() => Dispatcher.Invoke(() => new System.Drawing.Size((int)ActualWidth, (int)ActualHeight));
     }
 }

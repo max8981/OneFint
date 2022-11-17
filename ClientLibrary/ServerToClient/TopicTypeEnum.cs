@@ -17,5 +17,8 @@ namespace ClientLibrary.ServerToClient
         timing_boot,
         timing_volume,
         order,
+
+        screen_control,
+        time_sync,
     }
 }

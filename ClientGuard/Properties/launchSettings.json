@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ClientGuard": {
+      "commandName": "Project",
+      "commandLineArgs": "a=C:\\Users\\鞋子大炮\\source\\repos\\max8981\\OneFint\\Client_Wpf\\bin\\Debug\\net6.0-windows\\Client_Wpf.exe i=3 n=Client_Wpf\r\n\r\n"
+    }
+  }
+}

@@ -23,6 +23,16 @@ namespace Test
             throw new NotImplementedException();
         }
 
+        public Size GetSize()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetSize(int width, int height)
+        {
+            throw new NotImplementedException();
+        }
+
         public void ShowCode(string code)
         {
             throw new NotImplementedException();

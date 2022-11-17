@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.ServiceProcess;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -36,10 +37,16 @@ namespace Client_Wpf
         private static extern bool SetWaitableTimer(SafeWaitHandle hTimer, [In] ref long pDueTime, int lPeriod, IntPtr pfnCompletionRoutine, IntPtr lpArgToCompletionRoutin, bool fResume);
         [DllImport("kernel32")]
         private static extern WindowsAPIs.ExecutionStateEnum SetThreadExecutionState(WindowsAPIs.ExecutionStateEnum esFlags);
+        [DllImport("kernel32")]
+        private static extern bool SetSystemTime(ref SystemTime systemTime);
         [DllImport("user32.dll", EntryPoint = "ShowCursor", CharSet = CharSet.Auto)]
         private static extern void ShowCursor(int status);
         [DllImport("user32.dll")]
         private static extern uint GetDpiForWindow([In] IntPtr hmonitor);
+        [DllImport("user32.dll", EntryPoint = "ShowWindow", SetLastError =true)]
+        private static extern bool ShowWindow(IntPtr hWnd,uint nCmdShow);
+        [DllImport("user32.dll", EntryPoint = "FindWindow", SetLastError = true)]
+        private static extern IntPtr FindWindow(string lpClassName,string lpWindowName);
 
         private const uint WM_SYSCOMMAND = 0x0112;
         private const uint WM_DEVICECHANGE = 0x0219;
@@ -48,15 +55,25 @@ namespace Client_Wpf
 
         private static readonly IntPtr _currentMonitor = DisplayController.GetCurrentMonitor();
         private static readonly DisplayController.PHYSICAL_MONITOR[] _MONITORs = DisplayController.GetPhysicalMonitors(_currentMonitor);
-        private static readonly MMDevice _playbackDevice = new MMDeviceEnumerator().GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eMultimedia);
-
+        private static MMDevice? _playbackDevice;
+        public static void Init()
+        {
+            try
+            {
+                _playbackDevice = new MMDeviceEnumerator().GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eMultimedia);
+            }
+            catch(Exception ex)
+            {
+                ClientLibrary.Log.Default.Error(ex, "Init");
+            }
+        }
         public static void ScreenPowerOff() => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2);
         public static void ScreenPowerOn() => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, -1);
         public static void SetVolume(int volume)
         {
             try
             {
-                if (_playbackDevice.AudioEndpointVolume != null)
+                if (_playbackDevice?.AudioEndpointVolume != null)
                 {
                     volume = volume > 100 ? 100 : volume;
                     volume = volume < 0 ? 0 : volume;
@@ -183,6 +200,21 @@ namespace Client_Wpf
                 shortcut.Save();
             }
         }
+        public static bool SetDate(DateTime date)
+        {
+            SystemTime time = new()
+            {
+                year = (ushort)date.Year,
+                month = (ushort)date.Month,
+                dayOfWeek = (ushort)date.DayOfWeek,
+                day = (ushort)date.Day,
+                hour = (ushort)date.Hour,
+                minute = (ushort)date.Minute,
+                second = (ushort)date.Second,
+                milliseconds = (ushort)date.Millisecond,
+            };
+            return SetSystemTime(ref time);
+        }
         public static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
         {
             if (msg == (int)WM_DEVICECHANGE)
@@ -190,6 +222,12 @@ namespace Client_Wpf
                 USBUpdate();
             }
             return IntPtr.Zero;
+        }
+        public static void HideLauncher()
+        {
+            IntPtr intPtr = FindWindow("ConsoleWindowClass", "ClientLauncher");
+            if (intPtr != IntPtr.Zero)
+                ShowWindow(intPtr, 0);
         }
         private static void USBUpdate()
         {
@@ -202,6 +240,7 @@ namespace Client_Wpf
                     {
                         if (item.Contains("update.json"))
                         {
+                            Guard.Stop();
                             AutoUpdater.ParseUpdateInfoEvent += o =>
                             {
                                 var info = JsonSerializer.Deserialize<AutoUpdaterDotNET.UpdateInfoEventArgs>(o.RemoteData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -213,6 +252,26 @@ namespace Client_Wpf
                         }
                     }
             }
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        struct SystemTime
+        {
+            [MarshalAs(UnmanagedType.U2)]
+            internal ushort year;
+            [MarshalAs(UnmanagedType.U2)]
+            internal ushort month;
+            [MarshalAs(UnmanagedType.U2)]
+            internal ushort dayOfWeek;
+            [MarshalAs(UnmanagedType.U2)]
+            internal ushort day;
+            [MarshalAs(UnmanagedType.U2)]
+            internal ushort hour;
+            [MarshalAs(UnmanagedType.U2)]
+            internal ushort minute;
+            [MarshalAs(UnmanagedType.U2)]
+            internal ushort second;
+            [MarshalAs(UnmanagedType.U2)]
+            internal ushort milliseconds;
         }
     }
 }

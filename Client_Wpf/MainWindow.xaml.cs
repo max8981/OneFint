@@ -52,8 +52,12 @@ namespace Client_Wpf
         public Action<string[]> DeleteFiles => o => _deleteFiles.AddRange(o);
         public MainWindow()
         {
-            WindowsController.SetAutoBoot();
+            WindowsController.Init();
+            var ps = Process.GetProcessesByName("Client_Wpf");
+            if (ps.Length > 1)
+                Close();
             InitializeComponent();
+            WindowsController.SetAutoBoot();
             App.ShowMessage = ShowMessage;
             ScreenModeListBox.ItemsSource = Enum.GetValues(typeof(DisplayController.ScreenModeEnum));
             var screen = System.Windows.Forms.Screen.AllScreens;
@@ -64,6 +68,7 @@ namespace Client_Wpf
                 Config.Load();
             if (Config.Code=="")
                 Config.Code = Information.MachineCode;
+            Guard.Start(Config.GuardInterval);
             serverTextBox.Text = Config.MqttServer;
             usernameTextBox.Text = Config.MqttUser;
             passwordTextBox.Text = Config.MqttPassword;
@@ -168,6 +173,7 @@ namespace Client_Wpf
                 {
                     var info = JsonSerializer.Deserialize<AutoUpdaterDotNET.UpdateInfoEventArgs>(o.RemoteData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     o.UpdateInfo = info;
+                    Guard.Stop();
                 }
                 catch
                 {
@@ -227,6 +233,24 @@ namespace Client_Wpf
             Config.DelayedUpdate = value;
             ExhibitionController.SetShowDownloader(value);
             Config.Save();
+        }
+        private void Button_Click_4(object sender, RoutedEventArgs e)
+        {
+            Guard.Stop();
+            this.Close();
+        }
+
+        public void ScreenActivation(bool activation)
+        {
+            if (activation)
+                WindowsController.ScreenPowerOn();
+            else
+                WindowsController.ScreenPowerOff();
+        }
+
+        public void SetDate(DateTime date)
+        {
+            WindowsController.SetDate(date);
         }
     }
 }

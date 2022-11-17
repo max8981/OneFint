@@ -65,9 +65,11 @@ namespace ClientLibrary.UIs
             {
                 _exhibitions.Clear();
                 layoutId = layout == null ? 0 : layout.Id;
-                var pageController = _pageControllers.First();
-                pageController.Clear();
-                pageController.ShowView();
+                foreach (var item in _pageControllers)
+                {
+                    item.Clear();
+                    item.ShowView();
+                }
                 if (layout != null && layout.Content != null && layout.Content.Pages != null)
                     foreach (var page in layout.Content.Pages)
                         if (page.Components != null)
@@ -77,6 +79,7 @@ namespace ClientLibrary.UIs
         }
         private void AddComponent(Models.Component component)
         {
+            var pageIndex = GetPageIndex(ref component);
             var id = component.Id;
             var name = component.Name ?? $"Element{component.Id}";
             var w = component.W;
@@ -86,7 +89,7 @@ namespace ClientLibrary.UIs
             var z = component.Z;
             var text = component.Text;
             var rectangle = new System.Drawing.Rectangle(x, y, w, h);
-            var exhibition = _pageControllers.First().TryAddExhibition(id, name, rectangle, z);
+            var exhibition = _pageControllers[pageIndex].TryAddExhibition(id, name, rectangle, z);
             var controller = new ExhibitionController(exhibition);
             switch (component.ComponentType)
             {
@@ -109,6 +112,27 @@ namespace ClientLibrary.UIs
             }
             _exhibitions.TryAdd(id, controller);
         }
+        private int GetPageIndex(ref Models.Component component,int index=0)
+        {
+            var result = index;
+            if (_pageControllers.Length> result)
+            {
+                var size = _pageControllers[result].GetSize();
+                if (component.X >= size.Width)
+                {
+                    component.X -= size.Width;
+                    result++;
+                    result = GetPageIndex(ref component, result);
+                }
+                if (component.Y >= size.Height)
+                {
+                    component.Y -= size.Height;
+                    result++;
+                    result = GetPageIndex(ref component, result);
+                }
+            }
+            return result;
+        }
         public void SetContents(Models.Content[]? contents)
         {
             if (contents != null)
@@ -118,6 +142,18 @@ namespace ClientLibrary.UIs
                     foreach (var content in item)
                         if (item.Key.HasValue)
                             _exhibitions[item.Key.Value].AddContent(content);
+            }
+        }
+        public void StartAll()
+        {
+            foreach (var item in _exhibitions.Values)
+                item.Start();
+        }
+        public void StopAll()
+        {
+            foreach (var item in _exhibitions)
+            {
+                item.Value.Stop();
             }
         }
         internal void Close()

@@ -16,6 +16,10 @@ namespace Client_Wpf
         public static string DiskSize => GetDiskSize();
         public static string DesktopMonitor => GetDesktopMonitor();
         public static string MacAddress => GetMacByNetworkInterface();
+        private static long GetMemorySize()
+        {
+            return 0;
+        }
         private static string GetDiskSize()
         {
             string hdId = string.Empty;
@@ -65,7 +69,7 @@ namespace Client_Wpf
         {
             var mac = GetMacByNetworkInterface();
             var arr = mac.Split("-");
-            return string.Join(":", arr);
+            return string.Join("", arr);
         }
         public static string GetByteString(double value, int mod)
         {

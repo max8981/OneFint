@@ -43,6 +43,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ClientGuard\ClientGuard.csproj">
+      <Private>True</Private>
+      <CopyLocalSatelliteAssemblies>True</CopyLocalSatelliteAssemblies>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <ReferenceOutputAssembly>True</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\ClientLibrary\ClientLibrary.csproj" />
   </ItemGroup>
 

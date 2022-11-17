@@ -30,7 +30,15 @@ namespace ClientLibrary.UIs
         }
         public void SetExhibition()
         {
+            Start();
+        }
+        public void Start()
+        {
             Task.Factory.StartNew(() => AutoPlay(cancellationTokenSource.Token), cancellationTokenSource.Token);
+        }
+        public void Stop()
+        {
+            cancellationTokenSource.Cancel();
         }
         public static void SetDelayedUpdate(bool b) => _isDelayedUpdate = b;
         public static void SetShowDownloader(bool b) => _isShowDownloader = b;
@@ -112,7 +120,10 @@ namespace ClientLibrary.UIs
                     if (isEmpty = !GetNewFlashContent(_newFlashContents, out content!))
                         if (isEmpty = !GetContent(_normalContents, out content!))
                             if (isEmpty = !GetContent(_defaultContents, out content!))
+                            {
+                                Task.Delay(1000, token).Wait(token);
                                 continue;
+                            }
                 if (content != null&&content.Material!=null)
                 {
                     switch (content.Material.MaterialType)

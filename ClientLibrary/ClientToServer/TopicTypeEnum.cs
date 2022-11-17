@@ -11,5 +11,8 @@ namespace ClientLibrary.ClientToServer
         heartbeat,
         material_download_status,
         reconnect,
+
+        device_info,
+        upload_log,
     }
 }

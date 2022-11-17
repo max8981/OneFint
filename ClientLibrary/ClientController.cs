@@ -59,7 +59,7 @@ namespace ClientLibrary
         }
         private void Connect()
         {
-            _mqtt.Connect();
+            _mqtt.ConnectAsync();
         }
         private void ReceiveTopics(ServerToClient.TopicTypeEnum topic, string json)
         {
@@ -117,6 +117,14 @@ namespace ClientLibrary
                     if (TryGetOrder(json, out var order))
                         if (order != null)
                             Order(order);
+                    break;
+                case ServerToClient.TopicTypeEnum.screen_control:
+                    if (TryFromJson<ScreenControl>(json, out var screen))
+                        ScreenControl(screen);
+                    break;
+                case ServerToClient.TopicTypeEnum.time_sync:
+                    if (TryFromJson<TimeSync>(json, out var timeSync))
+                        TimeSync(timeSync);
                     break;
             }
         }
@@ -230,6 +238,26 @@ namespace ClientLibrary
                     break;
             }
         }
+        private void ScreenControl(ScreenControl? screen)
+        {
+            if (screen != null)
+            {
+                _client.ScreenActivation(screen.ScreenActivation);
+                if (screen.ScreenActivation)
+                    _uIController.StartAll();
+                else
+                    _uIController.StopAll();
+                DeviceInfo(screen.ScreenActivation);
+            }
+        }
+        private void TimeSync(TimeSync? timeSync)
+        {
+            if (timeSync != null)
+            {
+                var date = DateTime.Now.AddSeconds(timeSync.ForwardSecond);
+                _client.SetDate(date);
+            }
+        }
         private void HeartBeat()
         {
             _mqtt.Send(ClientToServer.TopicTypeEnum.heartbeat, JsonSerializer.Serialize(new ClientToServer.HeartBeat(_client.Config.Code)));
@@ -241,6 +269,15 @@ namespace ClientLibrary
         private void Reconnect()
         {
             _mqtt.Send(ClientToServer.TopicTypeEnum.reconnect, JsonSerializer.Serialize(new ClientToServer.Reconnect(_client.Config.Code)));
+        }
+        private void DeviceInfo(bool activation, bool refreshContent = false)
+        {
+            DeviceInfo info = new()
+            {
+                ScreenActivation = activation,
+                RefreshContent = refreshContent,
+            };
+            _mqtt.Send(ClientToServer.TopicTypeEnum.device_info, JsonSerializer.Serialize(info));
         }
         private bool TryFromJson<T>(string json, out T? result) where T : Topic
         {
