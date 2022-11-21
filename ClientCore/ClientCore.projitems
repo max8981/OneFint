@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ClientConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClientHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controllers\ClientController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClientToServer\ClientTopic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClientToServer\DeviceInfo.cs" />
