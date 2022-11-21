@@ -42,11 +42,14 @@ namespace Update_Server.Controllers
                 {
                     string filePath = System.IO.Path.Combine(uploadPath, file.FileName);
                     var p = System.IO.Path.GetDirectoryName(filePath);
-                    if (!Directory.Exists(p)) Directory.CreateDirectory(p);
-                    result.Path = p;
-                    using FileStream fs = new(filePath, FileMode.OpenOrCreate);
-                    file.CopyTo(fs);
-                    break;
+                    if (p != null)
+                    {
+                        if (!Directory.Exists(p)) Directory.CreateDirectory(p);
+                        result.Path = p;
+                        using FileStream fs = new(filePath, FileMode.OpenOrCreate);
+                        file.CopyTo(fs);
+                        break;
+                    }
                 }
             }
             catch (Exception ex)

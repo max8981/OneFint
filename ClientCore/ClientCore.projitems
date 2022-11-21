@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>8a0209b5-a554-435d-ad69-793e8ddc0734</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>ClientCore</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ClientConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controllers\ClientController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClientToServer\ClientTopic.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClientToServer\DeviceInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClientToServer\HeartBeat.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClientToServer\MaterialDownloadStatus.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClientToServer\TopicTypeEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClientToServer\UploadLog.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controllers\ContentController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controllers\ExhibitionController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controllers\MaterialController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DownloadHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\ClockTypeEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\ComponentTypeEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\ContentStatusEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\ContentTypeEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\DeviceStatusEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\HorizontalEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\InterchangeEffectEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\LoopTypeEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\MaterialTypeEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\OrderEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\SystemTypeEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\VerticalEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\WeekdayEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IDownload.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IExhibition.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\BaseDateAt.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\BaseText.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Component.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Content.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Department.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Device.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\DeviceGroup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Folder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Hardware.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Layout.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\LayoutContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MachineInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Material.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\NewFlashContentPayload.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Order.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Owner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Page.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Role.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\TimingBootPolicy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\TimingVolumePolicy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Weekdays.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\BaseContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\ClientControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\DeleteMaterial.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\DeleteNewFlashContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\MaterialDownloadUrl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\ScreenControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\TimeSync.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\TimingBoot.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\TimingVolume.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\ServerTopic.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerToClient\TopicTypeEnum.cs" />
+  </ItemGroup>
+</Project>

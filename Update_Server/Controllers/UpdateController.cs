@@ -16,9 +16,10 @@ namespace Update_Server.Controllers
         //[Produces("application/xml")]
         public IActionResult GetVersion(string? key)
         {
-            var project = Data.Project.GetProject(key);
-            //return Ok(project.Xml);
-            return new JsonResult(project.UpdateInfo);
+            if (key != null)
+                return new JsonResult(Data.Project.GetProject(key).UpdateInfo);
+            else
+                return NotFound();
         }
         [HttpGet, Route("Changelog")]
         public IActionResult GetChangelog(string? key)
