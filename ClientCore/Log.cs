@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,17 +15,17 @@ namespace ClientCore
         public const string WarnLevel = "WARN";
         public const string ErrorLevel = "ERROR";
         private readonly ConcurrentQueue<string[]> logMsgQueue = new();
-        private readonly CancellationTokenSource cts = null!;
+        private readonly System.Threading.CancellationTokenSource cts = null!;
         private string lineLayoutRenderFormat = "[{0:yyyy-MM-dd HH:mm:ss}]\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}；";
         private long maxSizeBackup = 10485760L;//默认10MB
         private string? todayLogName = null;
         private static readonly Log instance = new();
         private Log()
         {
-            cts = new CancellationTokenSource();
+            cts = new System.Threading.CancellationTokenSource();
             ListenSaveLogAsync(cts.Token);
         }
-        private void ListenSaveLogAsync(CancellationToken cancellationToken)
+        private void ListenSaveLogAsync(System.Threading.CancellationToken cancellationToken)
         {
             Task.Factory.StartNew(() =>
             {
@@ -35,18 +36,13 @@ namespace ClientCore
                     {
                         List<string[]> logMsgList = new();
                         while (logMsgList.Count < 10 && logMsgQueue.TryDequeue(out var logMsgItems))
-                        {
                             logMsgList.Add(logMsgItems);
-                        }
 
                         WriteLog(logMsgList);
 
                         lastSaveLogTime = DateTime.Now;
                     }
-                    else
-                    {
-                        SpinWait.SpinUntil(() => logMsgQueue.Count >= 10, 5000);//自旋等待直到日志队列有>=10的记录或超时5S后再进入下一轮的判断
-                    }
+                    else System.Threading.SpinWait.SpinUntil(() => logMsgQueue.Count >= 10, 5000);
                 }
             }, cancellationToken);
         }
@@ -54,20 +50,12 @@ namespace ClientCore
         {
             string logFileDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
             if (!Directory.Exists(logFileDir))
-            {
                 Directory.CreateDirectory(logFileDir);
-            }
-
             string logDateStr = DateTime.Now.ToString("yyyyMMdd");
             string logName = logDateStr;
             if (!string.IsNullOrEmpty(todayLogName) && todayLogName.StartsWith(logName))
-            {
                 logName = todayLogName;
-            }
-            else
-            {
-                todayLogName = logName;
-            }
+            else todayLogName = logName;
 
             string logFilePath = Path.Combine(logFileDir, logName + ".log");
 
@@ -89,10 +77,7 @@ namespace ClientCore
                     Regex rgx = new Regex(@"^\d{8}-(?<fnum>\d{2})$");
                     int fnum = 2;
                     if (rgx.IsMatch(logName))
-                    {
                         fnum = int.Parse(rgx.Match(logName).Groups["fnum"].Value) + 1;
-                    }
-
                     logName = string.Format("{0}-{1:D2}", logDateStr, fnum);
                     todayLogName = logName;
                     logFilePath = Path.Combine(logFileDir, logName + ".log");
@@ -122,33 +107,27 @@ namespace ClientCore
         public static Log Default => instance;
         public string LineLayoutRenderFormat
         {
-            get { return lineLayoutRenderFormat; }
+            get => lineLayoutRenderFormat;
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
-                {
                     throw new ArgumentException("无效的LineLayoutRenderFormat属性值");
-                }
-
                 lineLayoutRenderFormat = value;
             }
         }
         public long MaxSizeBackup
         {
-            get { return maxSizeBackup; }
+            get => maxSizeBackup;
             set
             {
                 if (value <= 0)
-                {
                     throw new ArgumentException("无效的MaxSizeBackup属性值");
-                }
-
                 maxSizeBackup = value;
             }
         }
         public void SaveLog(string logLevel, string msg, string source, string? str1 = null, string? str2 = null, string? str3 = null, string? str4 = null)
         {
-            logMsgQueue.Enqueue(new[] { logLevel, Thread.CurrentThread.ManagedThreadId.ToString(), source, msg, str1 ?? string.Empty, str2 ?? string.Empty, str3 ?? string.Empty, str4 ?? string.Empty });
+            logMsgQueue.Enqueue(new[] { logLevel, Environment.CurrentManagedThreadId.ToString(), source, msg, str1 ?? string.Empty, str2 ?? string.Empty, str3 ?? string.Empty, str4 ?? string.Empty });
         }
         public void Info(string msg, string source, string? str1 = null, string? str2 = null, string? str3 = null, string? str4 = null)
         {
@@ -164,7 +143,7 @@ namespace ClientCore
         }
         public void Error(Exception ex, string source, string? other1 = null, string? other2 = null, string? other3 = null)
         {
-            SaveLog(ErrorLevel, ex.Message, source, ex.StackTrace, other1, other2);
+            SaveLog(ErrorLevel, ex.Message, source, ex.StackTrace, other1, other2, other3);
         }
         ~Log()
         {

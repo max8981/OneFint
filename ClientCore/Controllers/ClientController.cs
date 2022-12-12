@@ -10,17 +10,18 @@ namespace ClientCore.Controllers
 {
     internal partial class ClientController
     {
-        private readonly IClient _client;
-        private readonly ClientConfig _clientConfig;
-        private readonly IPage[] _pages;
+        private readonly IClientController _client;
+        private readonly IClientConfig _clientConfig;
+        private readonly ILayoutWindow[] _layouts;
         private readonly ConcurrentDictionary<int, Models.TimingBootPolicy> _timingBoots = new();
         private readonly ConcurrentDictionary<int, Models.TimingVolumePolicy> _timingVolumes = new();
-        public ClientController(IClient client, IPage[] pages)
+        public ClientController(IClientController client,IClientConfig clientConfig, ILayoutWindow[] layouts)
         {
             _client = client;
-            _pages = pages;
+            _layouts = layouts;
             _exhibitions = new Dictionary<int, ExhibitionController>();
-            _clientConfig = Load();
+            _clientConfig = clientConfig;
+            _client.Receive=(t, j) => ReceiveTopics((ServerToClient.TopicTypeEnum)Enum.Parse(typeof(ServerToClient.TopicTypeEnum), t), j);
         }
         public void Connect()
         {
@@ -170,33 +171,6 @@ namespace ClientCore.Controllers
                 //if (value != null)
                 //    _client.SaveConfiguration(name, value.ToString()!);
             }
-        }
-        public ClientConfig Load()
-        {
-            ClientConfig config = new ClientConfig()
-            {
-
-            };
-            //foreach (var item in config.GetType().GetProperties())
-            //{
-            //    var name = item.Name;
-            //    var value = item.GetValue(this);
-            //    if (value != null)
-            //        _client.SaveConfiguration(name, value.ToString()!);
-            //}
-            //config.Code = _client.LoadConfiguration(nameof(Code));
-            //config.MqttServer = _client.LoadConfiguration(nameof(MqttServer));
-            //if (int.TryParse(_client.LoadConfiguration(nameof(MqttPort)), out var port))
-            //    config.MqttPort = port;
-            //config.MqttUser = _client.LoadConfiguration(nameof(MqttUser));
-            //config.MqttPassword = _client.LoadConfiguration(nameof(MqttPassword));
-            //config.HeartBeatSecond = int.TryParse(_client.LoadConfiguration(nameof(HeartBeatSecond)), out var number) ? number : 10;
-            //config.MaterialPath = _client.LoadConfiguration(nameof(MaterialPath));
-            //config.DelayedUpdate = !bool.TryParse(_client.LoadConfiguration(nameof(DelayedUpdate)), out var delayeUpdate) || delayeUpdate;
-            //config.ShowDownloader = !bool.TryParse(_client.LoadConfiguration(nameof(ShowDownloader)), out var showDownloader) || showDownloader;
-            //config.UpdateUrl = _client.LoadConfiguration(nameof(UpdateUrl));
-            //config.GuardInterval = int.TryParse(_client.LoadConfiguration(nameof(GuardInterval)), out var interval) ? interval : 30;
-            return config;
         }
     }
 }

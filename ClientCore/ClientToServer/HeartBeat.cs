@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClientCore.ClientToServer
 {
-    public class HeartBeat:ClientTopic
+    internal class HeartBeat:ClientTopic
     {
 
     }

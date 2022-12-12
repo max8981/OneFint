@@ -7,14 +7,15 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>hatRSS+blk.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
+    <DebugType>full</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>portable</DebugType>
+    <DebugType>full</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -43,13 +44,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ClientGuard\ClientGuard.csproj">
-      <Private>True</Private>
-      <CopyLocalSatelliteAssemblies>True</CopyLocalSatelliteAssemblies>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-      <ReferenceOutputAssembly>True</ReferenceOutputAssembly>
-    </ProjectReference>
+    <ProjectReference Include="..\ClientGuard\ClientGuard.csproj" />
     <ProjectReference Include="..\ClientLibrary\ClientLibrary.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ClientCore
 {
-    internal interface IDownload
+    public interface IDownload
     {
         int Id { get; init; }
         string Name { get; init; }

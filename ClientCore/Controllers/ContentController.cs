@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ClientCore.Controllers
@@ -56,7 +57,7 @@ namespace ClientCore.Controllers
                 {
                     _exhibitions.Clear();
                     _layoutId = layout.Id;
-                    foreach (var page in _pages)
+                    foreach (var page in _layouts)
                         if (layout.Width - page.GetSize().Width > 0)
                         {
                             page.Clear();
@@ -82,22 +83,22 @@ namespace ClientCore.Controllers
             var z = component.Z;
             var text = component.Text??new Models.BaseText();
             var rectangle = new System.Drawing.Rectangle(x, y, w, h);
-            var exhibition = _pages[pageIndex].TryAddExhibition(id, name, rectangle, z);
+            var exhibition = _layouts[pageIndex].TryAddExhibition(id, name, rectangle, z);
             var controller = new ExhibitionController(exhibition);
             switch (component.ComponentType)
             {
                 case Enums.ComponentTypeEnum.IMAGE:
                     break;
                 case Enums.ComponentTypeEnum.BROWSER:
-                    exhibition.ShowWeb(component.Id, component.Text?.Text);
+                    exhibition.ShowWeb(component.Text?.Text);
                     break;
                 case Enums.ComponentTypeEnum.TEXT:
-                    exhibition.ShowText(component.Id, text.Text, text.FontColor, text.FontSize, text.BackgroundColor, (int)text.Horizontal, (int)text.Vertical);
+                    exhibition.ShowText(text.Text, text.FontColor, text.FontSize, text.BackgroundColor, (int)text.Horizontal, (int)text.Vertical);
                     break;
                 case Enums.ComponentTypeEnum.VIDEO:
                     break;
                 case Enums.ComponentTypeEnum.CLOCK:
-                    exhibition.ShowClock(component.Id,(int)component.ClockType, text.Text, text.FontColor, text.FontSize, text.BackgroundColor, (int)text.Horizontal, (int)text.Vertical);
+                    exhibition.ShowClock((int)component.ClockType, text.FontColor, text.FontSize, text.BackgroundColor);
                     break;
                 case Enums.ComponentTypeEnum.EXHIBITION_STAND:
                     controller.SetExhibition();
@@ -108,9 +109,9 @@ namespace ClientCore.Controllers
         private int GetPageIndex(ref Models.Component component, int index = 0)
         {
             var result = index;
-            if (_pages.Length > result)
+            if (_layouts.Length > result)
             {
-                var size = _pages[result].GetSize();
+                var size = _layouts[result].GetSize();
                 if (component.X >= size.Width)
                 {
                     component.X -= size.Width;
@@ -151,7 +152,7 @@ namespace ClientCore.Controllers
         {
             foreach (var exhibition in _exhibitions.Values)
                 exhibition.Close();
-            foreach (var page in _pages)
+            foreach (var page in _layouts)
                 page.Close();
             _exhibitions.Clear();
         }

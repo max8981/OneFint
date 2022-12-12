@@ -21,6 +21,8 @@ using AutoUpdaterDotNET;
 using System.Text.Json.Serialization;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Client_Wpf
 {
@@ -50,6 +52,10 @@ namespace Client_Wpf
         public ClientConfig Config { get; set; }
         public int Volume => WindowsController.GetVolume();
         public Action<string[]> DeleteFiles => o => _deleteFiles.AddRange(o);
+        public string IpAddress => Information.IpAddress;
+        public string MacAddress => Information.MacAddress;
+        public string DiskSize => Information.DiskSize;
+        public int Row => Information.Row;
         public MainWindow()
         {
             WindowsController.Init();
@@ -82,7 +88,14 @@ namespace Client_Wpf
                 PageControllers[i].ShowView();
             }
             _controller = new(this);
+            Test();
         }
+
+        private async void Test()
+        {
+
+        }
+
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
@@ -242,15 +255,16 @@ namespace Client_Wpf
 
         public void ScreenActivation(bool activation)
         {
+            Focus();
             if (activation)
-                WindowsController.ScreenPowerOn();
+                WindowsController.SendKeys(Keys.Space);
             else
                 WindowsController.ScreenPowerOff();
         }
 
-        public void SetDate(DateTime date)
+        public bool SetDate(DateTime date)
         {
-            WindowsController.SetDate(date);
+            return WindowsController.SetDate(date);
         }
     }
 }

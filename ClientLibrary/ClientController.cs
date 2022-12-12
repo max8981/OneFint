@@ -21,6 +21,8 @@ namespace ClientLibrary
         private readonly System.Timers.Timer _timer;
         private readonly Mqtt _mqtt;
         private int _lastvol;
+        private bool _hasContent;
+        private static DateTime Now => ClientHelper.Now;
         public ClientController(IClient client)
         {
             Downloader.SendDownloadStatus = MaterialDownloadStatus;
@@ -34,16 +36,15 @@ namespace ClientLibrary
             int t = 0;
             _timer.Elapsed += (o, e) =>
             {
-                var now = e.SignalTime;
                 t++;
-                TimingBoot(now);
-                TimingVolume(now);
+                TimingBoot(Now);
+                TimingVolume(Now);
                 if (t == _client.Config.HeartBeatSecond)
                 {
                     HeartBeat();
                     t = 0;
                 }
-                if (_client.Config.AutoReboot && (int)now.TimeOfDay.TotalSeconds == 3 * 60 * 60)
+                if (_client.Config.AutoReboot && (int)Now.TimeOfDay.TotalSeconds == 3 * 60 * 60)
                     Task.Factory.StartNew(async () =>
                     {
                         await Task.Delay(new Random().Next(0, 3600));
@@ -52,7 +53,8 @@ namespace ClientLibrary
             };
             _mqtt.Connected = () =>
             {
-                Reconnect();
+                HeartBeat();
+                DeviceInfo();
             };
             Connect();
             _timer.Start();
@@ -255,7 +257,8 @@ namespace ClientLibrary
             if (timeSync != null)
             {
                 var date = DateTime.Now.AddSeconds(timeSync.ForwardSecond);
-                _client.SetDate(date);
+                if (!_client.SetDate(date))
+                    timeSync.ForwardSecond.SetforwardSecond();
             }
         }
         private void HeartBeat()
@@ -266,18 +269,37 @@ namespace ClientLibrary
         {
             _mqtt.Send(ClientToServer.TopicTypeEnum.material_download_status, JsonSerializer.Serialize(status));
         }
-        private void Reconnect()
+        private async void DeviceInfo()
         {
-            _mqtt.Send(ClientToServer.TopicTypeEnum.reconnect, JsonSerializer.Serialize(new ClientToServer.Reconnect(_client.Config.Code)));
+            await Task.Delay(3000);
+            DeviceInfo(true);
+            UploadLog();
         }
-        private void DeviceInfo(bool activation, bool refreshContent = false)
+        private void DeviceInfo(bool activation)
         {
-            DeviceInfo info = new()
+            var info = new ClientToServer.DeviceInfo()
             {
+                AppVersion = "1.0.0.5",
+                IpAddress = _client.IpAddress,
+                MacAddress = _client.MacAddress,
                 ScreenActivation = activation,
-                RefreshContent = refreshContent,
+                Code = _client.Config.Code,
+                FreeDisk = 999,
+                Ram = 999,
+                RefreshContent = !_hasContent,
+                Rom = _client.Row,
+                SystemType = Enums.SystemTypeEnum.Windows,
             };
             _mqtt.Send(ClientToServer.TopicTypeEnum.device_info, JsonSerializer.Serialize(info));
+        }
+        private void UploadLog()
+        {
+            UploadLog content = new()
+            {
+                Log = Log.Default.GetLogBase64(),
+                Code = _client.Config.Code
+            };
+            _mqtt.Send(ClientToServer.TopicTypeEnum.upload_log, JsonSerializer.Serialize(content));
         }
         private bool TryFromJson<T>(string json, out T? result) where T : Topic
         {
@@ -285,7 +307,7 @@ namespace ClientLibrary
             try
             {
                 result = JsonSerializer.Deserialize<T>(json);
-                return result?.Code == _client.Config.Code;
+                return _hasContent = result?.Code == _client.Config.Code;
             }
             catch(Exception ex)
             {

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ClientCore
 {
-    internal interface IPage
+    internal interface ILayoutWindow
     {
         public int Id { get; set; }
         public string Name { get; set; }

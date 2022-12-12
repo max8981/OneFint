@@ -8,7 +8,7 @@ namespace ClientLibrary.ServerToClient
 {
     internal class TimeSync:Topic
     {
-        [JsonPropertyName("forwar_second")]
+        [JsonPropertyName("forward_second")]
         public int ForwardSecond { get; set; }
     }
 }

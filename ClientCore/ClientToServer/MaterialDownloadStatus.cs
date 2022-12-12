@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClientCore.ClientToServer
 {
-    public class MaterialDownloadStatus:ClientTopic
+    internal class MaterialDownloadStatus:ClientTopic
     {
         public MaterialDownloadStatus(int contentId, bool downloaded, int? deviceId, int? deviceGroupId)
         {

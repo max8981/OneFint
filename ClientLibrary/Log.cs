@@ -13,6 +13,7 @@ namespace ClientLibrary
         public const string InfoLevel = "INFO";
         public const string WarnLevel = "WARN";
         public const string ErrorLevel = "ERROR";
+        public string LogFilePath => GetLogFilePath();
         private readonly ConcurrentQueue<string[]> logMsgQueue = new();
         private readonly CancellationTokenSource cts = null!;
         private string lineLayoutRenderFormat = "[{0:yyyy-MM-dd HH:mm:ss}]\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}；";
@@ -118,6 +119,14 @@ namespace ClientLibrary
             }
             catch
             { }
+        }
+        public string GetLogBase64()
+        {
+            using FileStream filestream = new(GetLogFilePath(), FileMode.Open);
+            byte[] bt = new byte[filestream.Length];
+            filestream.Read(bt, 0, bt.Length);
+            var base64Str = Convert.ToBase64String(bt);
+            return base64Str;
         }
         public static Log Default => instance;
         public string LineLayoutRenderFormat

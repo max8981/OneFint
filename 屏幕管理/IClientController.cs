@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ClientCore
+namespace 屏幕管理
 {
-    internal interface IClient
+    internal interface IClientController
     {
         void Connect();
-        void Send(string topic,string jsonb);
+        void Send(string topic,string json);
+        Action<string, string> Receive { get; set; }
         void ShutDown();
         void Hibernate();
         void Reboot();

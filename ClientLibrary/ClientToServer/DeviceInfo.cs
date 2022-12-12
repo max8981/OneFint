@@ -10,10 +10,10 @@ namespace ClientLibrary.ClientToServer
     internal class DeviceInfo:Topic
     {
         [JsonPropertyName("time_stamp")]
-        public long TimeStamp => ClientHelper.TimeStamp;
+        public long TimeStamp => (DateTime.UtcNow.Ticks - 621355968000000000) / 10000000;
         [JsonPropertyName("screen_activation")]
         public bool ScreenActivation { get; set; }
-        [JsonPropertyName("fefresh_content")]
+        [JsonPropertyName("refresh_content")]
         public bool RefreshContent { get; set; }
         [JsonPropertyName("mac_addr")]
         public string? MacAddress { get; set; }

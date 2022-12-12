@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,9 +17,23 @@ namespace Client_Wpf
         public static string DiskSize => GetDiskSize();
         public static string DesktopMonitor => GetDesktopMonitor();
         public static string MacAddress => GetMacByNetworkInterface();
+        public static string IpAddress => GetByManagementClass().First().ToString();
+        public static int Row => GetRow();
         private static long GetMemorySize()
         {
             return 0;
+        }
+        private static int GetRow()
+        {
+            var result = 0;
+            ManagementClass hardDisk = new(WindowsAPIs.WindowsApiTypeEnum.Win32_DiskDrive.ToString());
+            ManagementObjectCollection hardDiskC = hardDisk.GetInstances();
+            foreach (var item in hardDiskC)
+            {
+                long capacity = Convert.ToInt64(item[WindowsAPIs.WindowsApiKeyEnum.Size.ToString()].ToString());
+                result += (int)capacity / 1000_000_000;
+            }
+            return result;
         }
         private static string GetDiskSize()
         {
@@ -64,6 +79,32 @@ namespace Client_Wpf
             {
             }
             return "00-00-00-00-00-00";
+        }
+        private static List<IPAddress> GetByManagementClass()
+        {
+            try
+            {
+                ManagementClass mClass = new System.Management.ManagementClass("Win32_NetworkAdapterConfiguration");
+                ManagementObjectCollection managementObjectCollection = mClass.GetInstances();
+                List<IPAddress> ls = new List<IPAddress>();
+                foreach (var item in managementObjectCollection)
+                {
+                    if ((bool)item["IPEnabled"] == true)
+                    {
+                        foreach (var ip in (string[])item["IPAddress"])
+                        {
+                            if(IPAddress.TryParse(ip, out var ipout))
+                                ls.Add(ipout);
+                        }
+                    }
+                }
+                return ls;
+            }
+            catch (Exception)
+            {
+                return new List<IPAddress>();
+
+            }
         }
         private static string GetMachineCode()
         {

@@ -14,7 +14,7 @@ namespace ClientLibrary
         void ShutDown();
         void Reboot();
         void ScreenActivation(bool activation);
-        void SetDate(DateTime date);
+        bool SetDate(DateTime date);
         Action<int> SetVolume { get; }
         Action<int> ScreenPowerOff { get; }
         Action<int> ScreenPowerOn { get; }
@@ -22,6 +22,10 @@ namespace ClientLibrary
         Action DeleteTempFiles { get; }
         Action<string[]> DeleteFiles { get; }
         int Volume { get; }
+        string MacAddress { get; }
+        string IpAddress { get; }
+        string DiskSize { get; }
+        int Row { get; }
         void SaveConfiguration(string name,string value);
         string LoadConfiguration(string name);
         Action<string, string> WriteLog { get;}

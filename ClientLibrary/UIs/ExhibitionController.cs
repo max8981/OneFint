@@ -23,6 +23,7 @@ namespace ClientLibrary.UIs
         private bool _stopPlay;
         private static bool _isDelayedUpdate;
         private static bool _isShowDownloader;
+        private static DateTime Now => ClientHelper.Now;
         public ExhibitionController(IExhibition exhibition)
         {
             _exhibition = exhibition;
@@ -147,7 +148,7 @@ namespace ClientLibrary.UIs
                             break;
                     }
                     _ = DateTime.TryParse(content.EndedAt, out var end);
-                    SpinWait.SpinUntil(() => DateTime.Now > end || _stopPlay, content.PlayDuration * 1000);
+                    SpinWait.SpinUntil(() => Now > end || _stopPlay, content.PlayDuration * 1000);
                     _exhibition.Hidden(content.Id);
                 }
             }
@@ -177,10 +178,10 @@ namespace ClientLibrary.UIs
             {
                 _ = DateTime.TryParse(content.StartedAt, out var start);
                 _ = DateTime.TryParse(content.EndedAt, out var end);
-                if (DateTime.Now < end)
+                if (Now < end)
                 {
                     contents.Enqueue(content);
-                    if (DateTime.Now > start)
+                    if (Now > start)
                     {
                         result = true;
                     }
@@ -203,16 +204,16 @@ namespace ClientLibrary.UIs
                 {
                     _ = DateTime.TryParse(content.StartedAt, out var start);
                     _ = DateTime.TryParse(content.EndedAt, out var end);
-                    if (DateTime.Now < end)
+                    if (Now < end)
                     {
-                        if (DateTime.Now > start)
+                        if (Now > start)
                         {
                             if (Payload.LoopTime.HasValue && Payload.LoopTime > 0)
                             {
                                 result = true;
                                 Payload.LoopTime--;
                             } else if (DateTime.TryParse(Payload.EndAt, out var endtime))
-                                result = DateTime.Now < endtime;
+                                result = Now < endtime;
                             else
                             {
                                 RemoveNewFlashContent(content.Id);

@@ -1,5 +1,4 @@
-﻿using ClientLibrary.ServerToClient;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +9,7 @@ namespace ClientCore.ClientToServer
     internal class DeviceInfo:ClientTopic
     {
         [JsonPropertyName("time_stamp")]
-        public long TimeStamp => ClientHelper.TimeStamp;
+        public long TimeStamp => (DateTime.UtcNow.Ticks - 621355968000000000) / 10000000;
         [JsonPropertyName("screen_activation")]
         public bool ScreenActivation { get; set; }
         [JsonPropertyName("fefresh_content")]

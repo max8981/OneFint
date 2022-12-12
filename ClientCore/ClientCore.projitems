@@ -9,7 +9,7 @@
     <Import_RootNamespace>ClientCore</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)ClientConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IClientConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClientHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controllers\ClientController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ClientToServer\ClientTopic.cs" />
@@ -35,10 +35,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Enums\SystemTypeEnum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enums\VerticalEnum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enums\WeekdayEnum.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IClientController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDownload.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IExhibition.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ILayoutWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\BaseDateAt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\BaseText.cs" />

@@ -14,13 +14,13 @@ namespace ClientCore.Controllers
                     {
                         var uri = new Uri(material.Content);
                         var id = material.Id;
-                        var ext = Path.GetExtension(uri.Segments.Last());
-                        var file = Path.Combine(_clientConfig.MaterialPath, $"{id}{ext}");
+                        var ext = System.IO.Path.GetExtension(uri.Segments[^1]);
+                        var file = System.IO.Path.Combine(_clientConfig.MaterialPath, $"{id}{ext}");
                         _client.DeleteFiles(new string[] { file });
                     }
             if (deleteMaterial.DeleteAll)
             {
-                var files = Directory.GetFiles(_clientConfig.MaterialPath);
+                var files = System.IO.Directory.GetFiles(_clientConfig.MaterialPath);
                 _client.DeleteFiles(files);
             }
         }

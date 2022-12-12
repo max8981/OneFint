@@ -30,6 +30,8 @@ namespace Client_Wpf
     {
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, uint wParam, int iParam);
+        [DllImport("user32.dll",EntryPoint ="keybd_event",SetLastError =true)]
+        private static extern IntPtr Keybd_Event(Keys keys, byte bScan, uint dwFlags, uint dwExtraInfo);
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         private static extern SafeWaitHandle CreateWaitableTimer(IntPtr lpTimerAttributes, bool bManualReset, string lpTimerName);
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -39,6 +41,8 @@ namespace Client_Wpf
         private static extern WindowsAPIs.ExecutionStateEnum SetThreadExecutionState(WindowsAPIs.ExecutionStateEnum esFlags);
         [DllImport("kernel32")]
         private static extern bool SetSystemTime(ref SystemTime systemTime);
+        [DllImport("kernel32")]
+        private static extern bool SetLocalTime(ref SystemTime systemTime);
         [DllImport("user32.dll", EntryPoint = "ShowCursor", CharSet = CharSet.Auto)]
         private static extern void ShowCursor(int status);
         [DllImport("user32.dll")]
@@ -69,6 +73,7 @@ namespace Client_Wpf
         }
         public static void ScreenPowerOff() => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2);
         public static void ScreenPowerOn() => SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, -1);
+        public static void SendKeys(Keys keys) => Keybd_Event(keys, 0, 0, 0);
         public static void SetVolume(int volume)
         {
             try
@@ -189,6 +194,9 @@ namespace Client_Wpf
         }
         public static void SetAutoBoot()
         {
+#if DEBUG
+            return;
+#endif
             var startupPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),"client.lnk");
             var shellType = Type.GetTypeFromProgID("WScript.Shell");
             dynamic? shell = Activator.CreateInstance(shellType!);
@@ -213,7 +221,8 @@ namespace Client_Wpf
                 second = (ushort)date.Second,
                 milliseconds = (ushort)date.Millisecond,
             };
-            return SetSystemTime(ref time);
+            
+            return SetLocalTime(ref time);
         }
         public static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
         {
