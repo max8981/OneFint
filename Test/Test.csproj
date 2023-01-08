@@ -7,6 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <Import Project="..\ClientCore\ClientCore.projitems" Label="Shared" />
+  <ItemGroup>
+    <PackageReference Include="DownloadQueue" Version="2.0.0" />
+  </ItemGroup>
 
 </Project>

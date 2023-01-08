@@ -1,6 +1,6 @@
 ﻿namespace VR文旅.Models.Responses
 {
-    internal class Standby: IResponse
+    internal class Standby
     {
         public Standby() { Standbies = Array.Empty<Standby>(); }
         [JsonPropertyName("total")]

@@ -19,7 +19,5 @@ namespace ClientCore
         Action StartCallback { get; }
         Action<long> SizeCallback { get; }
         Action<long> DownloadCallback { get; }
-        bool Start();
-        IDownload CreateNew(int id,string url,string name);
     }
 }

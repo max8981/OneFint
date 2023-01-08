@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -20,22 +21,25 @@ namespace VR文旅.Controls
     /// </summary>
     public partial class ImageModelView : UserControl
     {
+        public event Action<string?>? Selected;
         private static Thickness _thickness = new(10, 10, 10, 10);
+        private readonly string? url;
         internal ImageModelView(Models.Scenario scenario)
         {
             InitializeComponent();
             grid.SizeChanged += (o, e) => grid.Width = grid.ActualHeight / 3;
+            url = scenario.WebLink;
             Draw(scenario);
         }
         private void Draw(Models.Scenario scenario)
         {
             grid.Children.Add(GetImage(scenario.ThumbUrl));
-            grid.Children.Add(GetLabel($"{scenario.City} {scenario.Name}"));
+            grid.Children.Add(GetLabel($"{scenario.City} {scenario.ScenarioName}"));
             grid.Children.Add(GetTextBlock(scenario.Description));
         }
         private void ShowView()
         {
-            Global.ShowView("https://www.720yun.com/t/83cjegevuw2?scene_id=17199073");
+            Selected?.Invoke(url);
         }
         private Image GetImage(string? source)
         {

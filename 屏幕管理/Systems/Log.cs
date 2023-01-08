@@ -6,8 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using 屏幕管理.ClientToServer;
 
-namespace 屏幕管理
+namespace 屏幕管理.Systems
 {
     public class Log
     {
@@ -15,24 +16,24 @@ namespace 屏幕管理
         public const string WarnLevel = "WARN";
         public const string ErrorLevel = "ERROR";
         private readonly ConcurrentQueue<string[]> logMsgQueue = new();
-        private readonly System.Threading.CancellationTokenSource cts = null!;
+        private readonly CancellationTokenSource cts = null!;
         private string lineLayoutRenderFormat = "[{0:yyyy-MM-dd HH:mm:ss}]\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}；";
         private long maxSizeBackup = 10485760L;//默认10MB
         private string? todayLogName = null;
         private static readonly Log instance = new();
         private Log()
         {
-            cts = new System.Threading.CancellationTokenSource();
+            cts = new CancellationTokenSource();
             ListenSaveLogAsync(cts.Token);
         }
-        private void ListenSaveLogAsync(System.Threading.CancellationToken cancellationToken)
+        private void ListenSaveLogAsync(CancellationToken cancellationToken)
         {
             Task.Factory.StartNew(() =>
             {
                 DateTime lastSaveLogTime = DateTime.Now;
                 while (!cancellationToken.IsCancellationRequested)//如果没有取消线程，则一直监听执行写LOG
                 {
-                    if (logMsgQueue.Count >= 10 || (!logMsgQueue.IsEmpty && (DateTime.Now - lastSaveLogTime).TotalSeconds > 30))//如是待写日志消息累计>=10条或上一次距离现在写日志时间超过30s则需要批量提交日志
+                    if (logMsgQueue.Count >= 10 || !logMsgQueue.IsEmpty && (DateTime.Now - lastSaveLogTime).TotalSeconds > 30)//如是待写日志消息累计>=10条或上一次距离现在写日志时间超过30s则需要批量提交日志
                     {
                         List<string[]> logMsgList = new();
                         while (logMsgList.Count < 10 && logMsgQueue.TryDequeue(out var logMsgItems))
@@ -42,7 +43,7 @@ namespace 屏幕管理
 
                         lastSaveLogTime = DateTime.Now;
                     }
-                    else System.Threading.SpinWait.SpinUntil(() => logMsgQueue.Count >= 10, 5000);
+                    else SpinWait.SpinUntil(() => logMsgQueue.Count >= 10, 5000);
                 }
             }, cancellationToken);
         }
@@ -78,6 +79,7 @@ namespace 屏幕管理
                     int fnum = 2;
                     if (rgx.IsMatch(logName))
                         fnum = int.Parse(rgx.Match(logName).Groups["fnum"].Value) + 1;
+                    UpLoadLog(todayLogName);
                     logName = string.Format("{0}-{1:D2}", logDateStr, fnum);
                     todayLogName = logName;
                     logFilePath = Path.Combine(logFileDir, logName + ".log");
@@ -105,6 +107,8 @@ namespace 屏幕管理
             { }
         }
         public static Log Default => instance;
+        public static string LogFilePath => Default.GetLogFilePath();
+        public Action<string> UpLoadLog = logPath => { };
         public string LineLayoutRenderFormat
         {
             get => lineLayoutRenderFormat;
@@ -145,6 +149,7 @@ namespace 屏幕管理
         {
             SaveLog(ErrorLevel, ex.Message, source, ex.StackTrace, other1, other2, other3);
         }
+        public void Close() => cts.Cancel();
         ~Log()
         {
             cts.Cancel();

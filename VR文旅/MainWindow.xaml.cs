@@ -23,10 +23,30 @@ namespace VR文旅
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly Pages.MainPage main;
+        private readonly Pages.PlayPage play;
         public MainWindow()
         {
             InitializeComponent();
-            this.Closing += (o, e) => Global.CloseView();
+            //base.Width = SystemParameters.PrimaryScreenWidth;
+            //base.Height = SystemParameters.PrimaryScreenHeight;
+            Left = 0;
+            Top = 0;
+            main = new();
+            play = new();
+            main.Selected += x => play.ShowWeb(x);
+            play.Show += x =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (x)
+                        frame.Navigate(play);
+                    else
+                        frame.Navigate(main);
+                });
+            };
+            this.Closing += (o, e) => play.Close();
+            Loaded += (o, e) => frame.Navigate(main); 
         }
     }
 }

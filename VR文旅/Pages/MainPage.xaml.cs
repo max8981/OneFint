@@ -20,9 +20,25 @@ namespace VR文旅.Pages
     /// </summary>
     public partial class MainPage : Page
     {
+        public event Action<string?>? Selected;
         public MainPage()
         {
             InitializeComponent();
+            Getdata();
+        }
+        async void Getdata()
+        {
+            var data = await Models.PLayLists.GetPLayList(new Models.Location[] { new Models.Location("", "") }, new string[] { });
+        }
+
+        private void ListModelControl_Selected(string? obj)
+        {
+            Selected?.Invoke(obj);
+        }
+
+        private void ImageModelControl_Selected(string? obj)
+        {
+            Selected?.Invoke(obj);
         }
     }
 }

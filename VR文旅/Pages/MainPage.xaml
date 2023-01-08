@@ -11,20 +11,20 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="20*"/>
+            <RowDefinition Height="10*"/>
             <RowDefinition Height="80*"/>
         </Grid.RowDefinitions>
 
-        <Controls:FilterControl/>
+        <Controls:FilterControl VerticalAlignment="Stretch" Margin="0,20,0,0"/>
         <TabControl Grid.Row="1">
             <TabItem Header="图形模式">
                 <Grid Background="#FFE5E5E5">
-                    <Controls:ImageModelControl/>
+                    <Controls:ImageModelControl Selected="ImageModelControl_Selected"/>
                 </Grid>
             </TabItem>
             <TabItem Header="列表模式">
                 <Grid Background="#FFE5E5E5">
-                    <Controls:ListModelControl/>
+                    <Controls:ListModelControl Selected="ListModelControl_Selected"/>
                 </Grid>
             </TabItem>
         </TabControl>

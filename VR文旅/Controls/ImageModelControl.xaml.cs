@@ -21,7 +21,8 @@ namespace VR文旅.Controls
     /// </summary>
     public partial class ImageModelControl : UserControl
     {
-        private int _page = 1;
+        public event Action<string?>? Selected;
+        private int _page = 0;
         private double _lastWidth = 0;
         public ImageModelControl()
         {
@@ -36,6 +37,7 @@ namespace VR文旅.Controls
                     _lastWidth= grid.ActualWidth;
                 }
             };
+            Models.PLayLists.PlayListChanged += x => Draw();
         }
         public int ItemCount
         {
@@ -65,11 +67,8 @@ namespace VR文旅.Controls
             };
             image.MouseLeftButtonDown += (o, e) =>
             {
-                if (_page > 1)
-                {
-                    _page--;
-                    Draw();
-                }
+                _page -= _page > 0 ? 1 : 0;
+                Draw();
             };
             Grid.SetColumn(image, 0);
             return image;
@@ -84,7 +83,9 @@ namespace VR文旅.Controls
             };
             image.MouseLeftButtonDown += (o, e) =>
             {
+                var maxPage = Math.Ceiling((double)Models.PLayLists.Count / ItemCount);
                 _page++;
+                _page = _page < maxPage ? _page : 0;
                 Draw();
             };
             Grid.SetColumn(image, 2);
@@ -93,10 +94,12 @@ namespace VR文旅.Controls
         private void GetData(int page)
         {
             panel.Children.Clear();
-            var data=Models.Fake.GetPlayList(ItemCount, page);
-            for (int i = 0; i < data.Scenarios.Length; i++)
+            var data = Models.PLayLists.GetScenarios(page, ItemCount);
+            for (int i = 0; i < data.Length; i++)
             {
-                panel.Children.Add(new ImageModelView(data.Scenarios[i]));
+                var view = new ImageModelView(data[i]);
+                view.Selected += Selected;
+                panel.Children.Add(view);
             }
         }
     }

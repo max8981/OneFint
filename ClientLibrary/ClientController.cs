@@ -263,7 +263,9 @@ namespace ClientLibrary
         }
         private void HeartBeat()
         {
-            _mqtt.Send(ClientToServer.TopicTypeEnum.heartbeat, JsonSerializer.Serialize(new ClientToServer.HeartBeat(_client.Config.Code)));
+            var heartBeat = new ClientToServer.HeartBeat(_client.Config.Code);
+            var json = JsonSerializer.Serialize<object>(heartBeat);
+            _mqtt.Send(ClientToServer.TopicTypeEnum.heartbeat, json);
         }
         private void MaterialDownloadStatus(MaterialDownloadStatus status)
         {

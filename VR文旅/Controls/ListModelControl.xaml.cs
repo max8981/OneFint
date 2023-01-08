@@ -21,16 +21,30 @@ namespace VR文旅.Controls
     /// </summary>
     public partial class ListModelControl : UserControl
     {
+        public event Action<string?>? Selected;
         public ListModelControl()
         {
             InitializeComponent();
             //dataGrid.MouseLeftButtonDown += (o, e) => ShowView();
-            dataGrid.SelectionChanged+= (o, e) => ShowView();
-            GetData(1);
+            dataGrid.SelectionChanged += (o, e) =>
+            {
+                foreach (var item in e.AddedItems)
+                {
+                    if(item is Models.Scenario scenario)
+                    {
+                        Selected?.Invoke(scenario.WebLink);
+                        return;
+                    }
+                }
+            };
+            Models.PLayLists.PlayListChanged += o =>
+            {
+                dataGrid.ItemsSource = Models.PLayLists.GetScenarios(0, 10);
+            };
         }
-        private void Draw(IEnumerable<Type> data)
+        internal void Draw()
         {
-            dataGrid.ItemsSource = data;
+            GetData(0);
         }
         private void pagination_PageChanged(object sender, RoutedEventArgs e)
         {
@@ -39,11 +53,7 @@ namespace VR文旅.Controls
         }
         private void GetData(int page)
         {
-            dataGrid.ItemsSource = Models.Fake.GetPlayList(10,page).Scenarios;
-        }
-        private void ShowView()
-        {
-            Global.ShowView("https://www.720yun.com/t/83cjegevuw2?scene_id=17199073");
+            dataGrid.ItemsSource = Models.PLayLists.GetScenarios(page - 1, 10);
         }
     }
 }

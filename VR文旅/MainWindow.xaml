@@ -4,10 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="clr-namespace:VR文旅.Controls"
-    xmlns:pages="clr-namespace:VR文旅.Pages"
+        xmlns:pages="clr-namespace:VR文旅.Pages"
         x:Class="VR文旅.MainWindow"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <!--<Grid x:Name="grid"/>-->
-    <pages:MainPage/>
+    <Frame x:Name="frame" NavigationUIVisibility="Hidden"/>
+    <!--<Page x:Name="page" />-->
+    <!--<pages:MainPage/>-->
+    <!--<NavigationWindow x:Name="window"/>-->
 </Window>

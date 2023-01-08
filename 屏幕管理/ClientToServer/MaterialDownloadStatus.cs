@@ -1,8 +1,8 @@
 ﻿namespace 屏幕管理.ClientToServer
 {
-    internal class MaterialDownloadStatus:ClientTopic
+    internal class MaterialDownloadStatus:IClientTopic
     {
-        public MaterialDownloadStatus(int contentId, bool downloaded, int? deviceId, int? deviceGroupId):base("")
+        public MaterialDownloadStatus(int contentId, bool downloaded, int? deviceId, int? deviceGroupId)
         {
             ContentId = contentId;
             Downloaded = downloaded;

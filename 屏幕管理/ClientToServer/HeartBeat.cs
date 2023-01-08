@@ -6,8 +6,16 @@ using System.Threading.Tasks;
 
 namespace 屏幕管理.ClientToServer
 {
-    internal class HeartBeat:ClientTopic
+    internal class HeartBeat:IClientTopic
     {
-        public HeartBeat(string code):base(code) { }
+        public HeartBeat(string code)
+        {
+            Code = code;
+        }
+        /// <summary>
+        /// 设备编码
+        /// </summary>
+        [JsonPropertyName("code")]
+        public string Code { get; set; }
     }
 }

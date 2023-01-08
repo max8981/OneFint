@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CefSharp.DevTools.CSS;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -21,73 +22,134 @@ namespace VR文旅.Controls
     /// </summary>
     public partial class FilterControl : UserControl
     {
+        private double _lastWidth = 0;
         public FilterControl()
         {
             InitializeComponent();
+            grid.SizeChanged += (o, e) =>
+            {
+                if (_lastWidth != grid.ActualWidth)
+                {
+                    province.FontSize = grid.ActualHeight / 2;
+                    province.Width = grid.ActualHeight * 3;
+                    city.FontSize = grid.ActualHeight / 2;
+                    city.Width = grid.ActualHeight * 3;
+                    type.FontSize = grid.ActualHeight / 2;
+                    type.Width = grid.ActualHeight * 3;
+                    _lastWidth = grid.ActualWidth;
+                }
+            };
+            Loaded += async (o, e) =>
+            {
+                await Models.ProvinceAndCity.GetProvinceAndCityAsync();
+                await Models.ScenarioCategories.GetScenarioCategoriesAsync();
+            };
             Margin = new Thickness(0,20,0,10);
             HorizontalAlignment = HorizontalAlignment.Stretch;
             VerticalAlignment = VerticalAlignment.Top;
-            Draw();
+            province.DropDownOpened += ProvinceDropDownOpened;
+            province.DropDownClosed += DropDownClosed;
+            province.SelectionChanged += SelectionChanged;
+            city.DropDownOpened += CityDropDownOpened;
+            city.DropDownClosed += DropDownClosed;
+            city.SelectionChanged += SelectionChanged;
+            type.DropDownOpened += TypeDropDownOpened;
+            type.DropDownClosed += DropDownClosed;
+            type.SelectionChanged += TypeSelectionChanged;
         }
-        private void Draw()
+        private static void ProvinceDropDownOpened(object? sender, EventArgs e)
         {
-            grid.Children.Add(GetProvinceComboBox());
-            grid.Children.Add(GetCityComboBox());
-            grid.Children.Add(GetCategoryComboBox());
-        }
-        private static ComboBox GetProvinceComboBox()
-        {
-            ComboBox provinceComboBox = new()
+            var province = sender as ComboBox;
+            if (province is not null)
             {
-                Text = "选择省份",
-                Width = 80,
-                Height = 30,
-                Margin = new Thickness(0, 0, 0, 0),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-            provinceComboBox.SetValue(Grid.RowProperty,0);
-            provinceComboBox.SetValue(Grid.ColumnProperty, 0);
-            provinceComboBox.Items.Add(new CheckBox { Content = "123" });
-            provinceComboBox.Items.Add(new CheckBox { Content = "456" });
-            provinceComboBox.Items.Add(new CheckBox { Content = "789" });
-            return provinceComboBox;
+                province.Items.Clear();
+                foreach (var location in Models.ProvinceAndCity.GetProvinces())
+                    province.Items.Add(GetLocationCheckBox(location.Key.Province, location.Key, location.Value));
+            }
         }
-        private static ComboBox GetCityComboBox()
+        private static void ProvinceDropDownClosed(object? sender, EventArgs e)
         {
-            ComboBox cityComboBox = new()
+            var province = sender as ComboBox;
+            if (province is not null)
             {
-                Text = "选择城市",
-                Width = 80,
-                Height = 30,
-                Margin = new Thickness(0, 0, 0, 0),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment= VerticalAlignment.Center,
-            };
-            cityComboBox.SetValue(Grid.RowProperty, 0);
-            cityComboBox.SetValue(Grid.ColumnProperty, 1);
-            cityComboBox.Items.Add(new CheckBox { Content = "123" });
-            cityComboBox.Items.Add(new CheckBox { Content = "456" });
-            cityComboBox.Items.Add(new CheckBox { Content = "789" });
-            return cityComboBox;
+                //foreach (var item in province.Items)
+                //{
+                //    if (item is CheckBox checkBox)
+                //        if (checkBox.IsChecked.GetValueOrDefault(false))
+                //            _selected.Add(checkBox.Content.ToString() ?? "", new List<string>());
+                //}
+            }
         }
-        private static ComboBox GetCategoryComboBox()
+        private static void CityDropDownOpened(object? sender, EventArgs e)
         {
-            ComboBox CategoryComboBox = new()
+            var city = sender as ComboBox;
+            if(city is not null)
             {
-                Text = "选择分类",
-                Width = 80,
-                Height = 30,
-                Margin = new Thickness(0, 0, 0, 0),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
+                city.Items.Clear();
+                var locations = Models.ProvinceAndCity.GetCitys();
+                foreach (var location in locations)
+                    city.Items.Add(GetLocationCheckBox(location.Key.City, location.Key, location.Value));
+            }
+        }
+        private static void CityDropDownClosed(object? sender, EventArgs e)
+        {
+            var city = sender as ComboBox;
+            if (city is not null)
+            {
+
+            }
+        }
+        private void TypeDropDownOpened(object? sender, EventArgs e)
+        {
+            var type = sender as ComboBox;
+            if (type is not null)
+            {
+                type.Items.Clear();
+                foreach (var category in Models.ScenarioCategories.Types)
+                    type.Items.Add(GetTypeCheckBox(category));
+            }
+        }
+        private void TypeSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            foreach (var item in e.AddedItems)
+                if (item is CheckBox checkBox)
+                {
+                    var name = checkBox.Name;
+                    Models.ScenarioCategories.SetValue(name, !Models.ScenarioCategories.GetValue(name));
+                }
+        }
+        private static void SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            foreach (var item in e.AddedItems)
+                if (item is CheckBox checkBox)
+                {
+                    var location = (Models.Location)checkBox.Tag;
+                    Models.ProvinceAndCity.SetValue(location, !Models.ProvinceAndCity.Location[location]);
+                }
+        }
+        private static async void DropDownClosed(object? sender, EventArgs e)
+        {
+            await Models.PLayLists.GetPLayList(Models.ProvinceAndCity.GetLocations(),Models.ScenarioCategories.GetTypes());
+        }
+        private static CheckBox GetTypeCheckBox(string text)
+        {
+            var checkbox = new CheckBox
+            {
+                Name = text,
+                Content = text
             };
-            CategoryComboBox.SetValue(Grid.RowProperty, 0);
-            CategoryComboBox.SetValue(Grid.ColumnProperty, 2);
-            CategoryComboBox.Items.Add(new CheckBox { Content = "123" });
-            CategoryComboBox.Items.Add(new CheckBox { Content = "456" });
-            CategoryComboBox.Items.Add(new CheckBox { Content = "789" });
-            return CategoryComboBox;
+            return checkbox;
+        }
+        private static CheckBox GetLocationCheckBox(string content, Models.Location location,bool check)
+        {
+            var checkbox = new CheckBox
+            {
+                Tag = location,
+                Content = content,
+                IsChecked = check,
+            };
+            checkbox.Click += (o, e) => Models.ProvinceAndCity.SetValue(location, !Models.ProvinceAndCity.Location[location]);
+            return checkbox;
         }
     }
 }

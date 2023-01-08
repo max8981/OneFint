@@ -6,10 +6,32 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>True</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>hatRSS+blk.ico</ApplicationIcon>
+	<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="hatRSS+blk.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="hatRSS+blk.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autoupdater.NET.Official" Version="1.7.6" />
+    <PackageReference Include="CefSharp.Wpf.NETCore" Version="107.1.120" />
+    <PackageReference Include="CoreAudio" Version="1.22.0" />
+    <PackageReference Include="DownloadQueue" Version="2.0.0" />
     <PackageReference Include="MQTTnet" Version="4.1.4.563" />
+    <PackageReference Include="System.Management" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="watchdog.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

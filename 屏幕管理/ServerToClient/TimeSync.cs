@@ -2,7 +2,7 @@
 {
     internal class TimeSync:ServerTopic
     {
-        [JsonPropertyName("forwar_second")]
-        public int ForwardSecond { get; set; }
+        [JsonPropertyName("forward_second")]
+        public long ForwardSecond { get; set; }
     }
 }

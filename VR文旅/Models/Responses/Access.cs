@@ -1,6 +1,6 @@
 ﻿namespace VR文旅.Models.Responses
 {
-    internal class Access: IResponse
+    internal class Access
     {
         [JsonPropertyName("access-token")]
         public string? AccessToken { get; set; }

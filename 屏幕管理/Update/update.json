@@ -1,0 +1,11 @@
+{
+  "downloadURL": "",
+  "changelogURL": "",
+  "currentVersion": "0.0.0.0",
+  "installedVersion": null,
+  "mandatory": {
+    "value": false,
+    "minimumVersion": "1.0.0.0",
+    "updateMode": 1
+  }
+}

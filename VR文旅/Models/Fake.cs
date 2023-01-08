@@ -12,8 +12,8 @@ namespace VR文旅.Models
             {
                 new Scenario {
                     Id=19499573,
-                Name="王家大院兰芳居720VR全景",
-                Category="景区",
+                ScenarioName="王家大院兰芳居720VR全景",
+                ScenarioCategory="景区",
                 Province="山西",
                 City="晋中",
                 ThumbUrl="https://ssl-thumb2.720static.com/pano/abvk6w1bsdy/741721faff5ded2e8d5e0a0557fde458.jpg",
@@ -22,8 +22,8 @@ namespace VR文旅.Models
                 new Scenario
                 {
                     Id=6920800,
-                    Name="珠海外伶仃洋-石滩",
-                    Category="景区",
+                    ScenarioName="珠海外伶仃洋-石滩",
+                    ScenarioCategory="景区",
                     Province="广东省",
                     City="珠海市",
                     ThumbUrl="https://ssl-thumb2.720static.com/resource/prod/b07i4085d04/4fe2bui5u4f/12108645/imgs/thumb.jpg",
@@ -32,8 +32,8 @@ namespace VR文旅.Models
                 new Scenario
                 {
                     Id=6920794,
-                    Name="珠海-石涌湾",
-                    Category="景区",
+                    ScenarioName="珠海-石涌湾",
+                    ScenarioCategory="景区",
                     Province="广东省",
                     City="珠海市",
                     ThumbUrl="https://ssl-thumb2.720static.com/resource/prod/b07i4085d04/4fe2bui5u4f/12108646/imgs/thumb.jpg",
@@ -42,8 +42,8 @@ namespace VR文旅.Models
                 new Scenario
                 {
                     Id=6919658,
-                    Name="珠海-外伶仃洋 VR全景",
-                    Category="景区",
+                    ScenarioName="珠海-外伶仃洋 VR全景",
+                    ScenarioCategory="景区",
                     Province="广东省",
                     City="珠海市",
                     ThumbUrl="https://ssl-thumb2.720static.com/resource/prod/b07i4085d04/4fe2bui5u4f/12108642/imgs/thumb.jpg",
@@ -52,8 +52,8 @@ namespace VR文旅.Models
                 new Scenario
                 {
                     Id=7786837,
-                    Name="桂山岛-海豚湾",
-                    Category="景区",
+                    ScenarioName="桂山岛-海豚湾",
+                    ScenarioCategory="景区",
                     Province="广东省",
                     City="珠海市",
                     ThumbUrl="https://ssl-thumb2.720static.com/pano/949jvgymuk7/2286089ef6a940c40a224642bc171a15.jpg",
@@ -62,8 +62,8 @@ namespace VR文旅.Models
                 new Scenario
                 {
                     Id=7757638,
-                    Name="奇石河第一滩",
-                    Category="景区",
+                    ScenarioName="奇石河第一滩",
+                    ScenarioCategory="景区",
                     Province="广东省",
                     City="四会市",
                     ThumbUrl="https://ssl-thumb2.720static.com/pano/e07jvg4nek8/cd87e391cdb68833253b7972a496bd72.jpg",
@@ -72,8 +72,8 @@ namespace VR文旅.Models
                 new Scenario
                 {
                     Id=13280567,
-                    Name="南海神庙VR全景",
-                    Category="景区",
+                    ScenarioName="南海神庙VR全景",
+                    ScenarioCategory="景区",
                     Province="",
                     City="",
                     ThumbUrl="https://ssl-thumb2.720static.com/resource/prod/b07i4085d04/4fe2bui5u4f/27239567/imgs/thumb.jpg",
@@ -82,8 +82,8 @@ namespace VR文旅.Models
                 new Scenario
                 {
                     Id=16629349,
-                    Name="珠海-外伶仃洋",
-                    Category="景区",
+                    ScenarioName="珠海-外伶仃洋",
+                    ScenarioCategory="景区",
                     Province="广东省",
                     City="珠海市",
                     ThumbUrl="https://ssl-thumb2.720static.com/resource/prod/b07i4085d04/4fe2bui5u4f/12108642/imgs/thumb.jpg",
@@ -92,8 +92,8 @@ namespace VR文旅.Models
                 new Scenario
                 {
                     Id=18010872,
-                    Name="西江千户苗寨—VR全景",
-                    Category="景区",
+                    ScenarioName="西江千户苗寨—VR全景",
+                    ScenarioCategory="景区",
                     Province="贵州省",
                     City="",
                     ThumbUrl="https://ssl-thumb2.720static.com/pano/23vkbl7lOd9/2fff54eea67edb24863c0841279028c6.jpg",
@@ -102,8 +102,8 @@ namespace VR文旅.Models
                 new Scenario
                 {
                     Id=8222155,
-                    Name="冬日印象：鹧鸪山冰瀑世界【VR全景】",
-                    Category="景区",
+                    ScenarioName="冬日印象：鹧鸪山冰瀑世界【VR全景】",
+                    ScenarioCategory="景区",
                     Province="四川省",
                     City="",
                     ThumbUrl="https://ssl-thumb2.720static.com/pano/f35ju5maOy5/61ae354c0abcd9edcc6bbd580fa87060.png",

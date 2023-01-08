@@ -91,7 +91,7 @@ namespace Client_Wpf
             Test();
         }
 
-        private async void Test()
+        private void Test()
         {
 
         }

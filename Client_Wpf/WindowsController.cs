@@ -194,9 +194,6 @@ namespace Client_Wpf
         }
         public static void SetAutoBoot()
         {
-#if DEBUG
-            return;
-#endif
             var startupPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),"client.lnk");
             var shellType = Type.GetTypeFromProgID("WScript.Shell");
             dynamic? shell = Activator.CreateInstance(shellType!);

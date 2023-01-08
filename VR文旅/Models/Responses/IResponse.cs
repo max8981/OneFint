@@ -2,5 +2,6 @@
 {
     internal interface IResponse
     {
+        bool Success { get; set; }
     }
 }

@@ -12,5 +12,8 @@
             <ColumnDefinition Width="100*"/>
             <ColumnDefinition Width="100*"/>
         </Grid.ColumnDefinitions>
+        <ComboBox x:Name="province" HorizontalAlignment="Center" VerticalAlignment="Center" Width="120"/>
+        <ComboBox x:Name="city" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="120"/>
+        <ComboBox x:Name="type" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="120"/>
     </Grid>
 </UserControl>

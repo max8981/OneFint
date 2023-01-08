@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 
 namespace 屏幕管理.Controllers
 {
     internal partial class ClientController
     {
+        private readonly Dictionary<System.Windows.Forms.Screen,Interfaces.ILayoutWindow> _screens;
         private readonly Dictionary<int, ExhibitionController> _exhibitions;
         private int _layoutId;
         private void NormalAndDefaultContent(ServerToClient.BaseContent baseContent)
@@ -34,7 +36,7 @@ namespace 屏幕管理.Controllers
             SetLayout(baseContent.Layout);
             if (baseContent.NewFlashContentPayloads != null)
             {
-                foreach (var newFlash in baseContent.NewFlashContentPayloads)
+                foreach (var newFlash in baseContent.NewFlashContentPayloads.OrderBy(_=>_.NewFlashContent?.Order))
                     if (newFlash.NewFlashContent != null && newFlash.NewFlashContent.Component != null)
                         _exhibitions[newFlash.NewFlashContent.Component.Id].AddNewFlashContent(newFlash);
             }
@@ -55,15 +57,16 @@ namespace 屏幕管理.Controllers
             if (layout != null)
                 if (_layoutId != layout.Id)
                 {
+                    Global.HiddenCode();
                     _exhibitions.Clear();
                     _layoutId = layout.Id;
-                    foreach (var page in _layouts)
-                        if (layout.Width - page.GetSize().Width > 0)
-                        {
-                            page.Clear();
-                            page.ShowView();
-                            layout.Width -= page.GetSize().Width;
-                        }
+                    foreach (var screen in _screens)
+                    {
+                        screen.Value.Clear();
+                        screen.Value.ShowView();
+                        if (layout.Width - screen.Key.Bounds.Width >= 0)
+                            layout.Width -= screen.Key.Bounds.Width;
+                    }
                     if (layout != null && layout.Content != null && layout.Content.Pages != null)
                         foreach (var page in layout.Content.Pages)
                             if (page.Components != null)
@@ -73,9 +76,9 @@ namespace 屏幕管理.Controllers
         }
         private void AddComponent(Models.Component component)
         {
-            var pageIndex = GetPageIndex(ref component);
+            var layoutIndex = GetPageIndex(ref component);
             var id = component.Id;
-            var name = component.Name ?? $"Element{component.Id}";
+            var name = string.IsNullOrWhiteSpace(component.Name) ? $"Element{component.Id}" : component.Name;
             var w = component.W;
             var h = component.H;
             var x = component.X;
@@ -83,35 +86,34 @@ namespace 屏幕管理.Controllers
             var z = component.Z;
             var text = component.Text??new Models.BaseText();
             var rectangle = new System.Drawing.Rectangle(x, y, w, h);
-            var exhibition = _layouts[pageIndex].TryAddExhibition(id, name, rectangle, z);
-            var controller = new ExhibitionController(exhibition);
+            var exhibition = Layouts[layoutIndex].TryAddExhibition(id, name, rectangle, z);
             switch (component.ComponentType)
             {
                 case Enums.ComponentTypeEnum.IMAGE:
                     break;
                 case Enums.ComponentTypeEnum.BROWSER:
-                    exhibition.ShowWeb(component.Text?.Text);
+                    exhibition.SetWeb(text?.Text);
                     break;
                 case Enums.ComponentTypeEnum.TEXT:
-                    exhibition.ShowText(text.Text, text.FontColor, text.FontSize, text.BackgroundColor, (int)text.Horizontal, (int)text.Vertical);
+                    exhibition.SetText(text);
                     break;
                 case Enums.ComponentTypeEnum.VIDEO:
                     break;
                 case Enums.ComponentTypeEnum.CLOCK:
-                    exhibition.ShowClock((int)component.ClockType, text.FontColor, text.FontSize, text.BackgroundColor);
+                    exhibition.SetClock(component.ClockType, text);
                     break;
                 case Enums.ComponentTypeEnum.EXHIBITION_STAND:
-                    controller.SetExhibition();
+                    exhibition.SetExhibition();
                     break;
             }
-            _exhibitions.TryAdd(id, controller);
+            _exhibitions.TryAdd(id, exhibition);
         }
         private int GetPageIndex(ref Models.Component component, int index = 0)
         {
             var result = index;
-            if (_layouts.Length > result)
+            if (Layouts.Length > result)
             {
-                var size = _layouts[result].GetSize();
+                var size = Layouts[result].GetSize();
                 if (component.X >= size.Width)
                 {
                     component.X -= size.Width;
@@ -127,34 +129,28 @@ namespace 屏幕管理.Controllers
             }
             return result;
         }
+        public Interfaces.ILayoutWindow[] Layouts => _screens.Values.ToArray();
+        public bool HasContent => _exhibitions.Count > 0;
         public void SetContents(Models.Content[]? contents)
         {
             if (contents != null)
             {
                 var group = contents.GroupBy(_ => _.Component?.Id).ToArray();
                 foreach (var item in group)
-                    foreach (var content in item)
+                    foreach (var content in item.OrderBy(_=>_.Order))
                         if (item.Key.HasValue)
                             _exhibitions[item.Key.Value].AddContent(content);
             }
         }
-        public void StartAll()
-        {
-            foreach (var item in _exhibitions.Values)
-                item.Start();
-        }
-        public void StopAll()
-        {
-            foreach (var item in _exhibitions)
-                item.Value.Stop();
-        }
         internal void Close()
         {
+            _timer.Close();
             foreach (var exhibition in _exhibitions.Values)
                 exhibition.Close();
-            foreach (var page in _layouts)
+            foreach (var page in Layouts)
                 page.Close();
             _exhibitions.Clear();
+            _mqtt.Close();
         }
     }
 }

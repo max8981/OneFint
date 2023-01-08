@@ -22,9 +22,9 @@ namespace ClientCore
                 var filename = new Uri(url).Segments.Last();
                 var ext = Path.GetExtension(filename);
                 var name = $"{id}{ext}";
-                task = task.CreateNew(id, url, name);
-                if (!task.IsComplete)
-                    task.Start();
+                //task = new(id, url, name);
+                //if (!task.IsComplete)
+                //    task.Start();
             }
             return task;
         }

@@ -10,19 +10,11 @@ namespace 屏幕管理.Controllers
         {
             if (deleteMaterial.Materials != null)
                 foreach (var material in deleteMaterial.Materials)
-                    if (material.Content != null)
-                    {
-                        var uri = new Uri(material.Content);
-                        var id = material.Id;
-                        var ext = System.IO.Path.GetExtension(uri.Segments[^1]);
-                        var file = System.IO.Path.Combine(_clientConfig.MaterialPath, $"{id}{ext}");
-                        _client.DeleteFiles(new string[] { file });
-                    }
+                    if (DownloadController.TryGetMaterialFilePath(material, out var file))
+                        System.IO.File.Delete(file);
             if (deleteMaterial.DeleteAll)
-            {
-                var files = System.IO.Directory.GetFiles(_clientConfig.MaterialPath);
-                _client.DeleteFiles(files);
-            }
+                foreach (var file in DownloadController.MaterialFiles)
+                    System.IO.File.Delete(file);
         }
         private void MaterialDownloadUrl(ServerToClient.MaterialDownloadUrl material)
         {

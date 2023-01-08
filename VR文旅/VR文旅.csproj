@@ -10,11 +10,15 @@
 
   <ItemGroup>
     <None Remove="Resources\Left.png" />
+    <None Remove="Resources\Logo.png" />
     <None Remove="Resources\Right.png" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\Left.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Right.png">
