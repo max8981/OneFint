@@ -11,6 +11,7 @@ namespace VR文旅.Models
     {
         private const string PATH = "/api/client/province_and_city/";
         private static readonly Dictionary<Location, bool> _locations = new();
+        private static readonly Dictionary<string, City> _provinceAndCity = new();
         [JsonPropertyName("locations")]
         public Dictionary<string, City> Provinces { get; set; } = new();
         public bool Success { get; set; }
@@ -18,16 +19,18 @@ namespace VR文旅.Models
         {
             var request = new
             {
-                org_id = 1,
+                org_id = Systems.Config.OrdId,
             };
             var response = await request.PostAsync<ProvinceAndCity>(PATH);
             _locations.Clear();
+            _provinceAndCity.Clear();
             if (response.Success)
                 foreach (var province in response.Provinces)
                 {
                     _locations.Add(new Location(province.Key, ""), false);
                     foreach (var city in province.Value.Citys)
                         _locations.Add(new Location(province.Key, city), false);
+                    _provinceAndCity.Add(province.Key, province.Value);
                 }
             return response.Success;
         }
@@ -49,11 +52,32 @@ namespace VR文旅.Models
                         result.Add(city.Key, city.Value);
             return result;
         }
+        public static string[] GetProvinceList => _provinceAndCity.Keys.ToArray();
+        public static string[] GetCityList(string[] provinces)
+        {
+            var result = new List<string>();
+            if (provinces.Any())
+                foreach (var province in provinces)
+                    result.AddRange(_provinceAndCity[province].Citys);
+            else
+                foreach (var item in _provinceAndCity)
+                    result.AddRange(item.Value.Citys);
+            return result.ToArray();
+        }
         public static Location[] GetLocations()
         {
             var result = new List<Location>();
             foreach (var item in _locations.Where(x=>x.Value))
                 result.Add(item.Key);
+            return result.ToArray();
+        }
+        public static Location[] GetLocations(string[] provinces, string[] citys)
+        {
+            var result = new List<Location>();
+            foreach (var province in provinces)
+                foreach (var city in _provinceAndCity[province].Citys)
+                    if (!citys.Any()||citys.Contains(city))
+                        result.Add(new Models.Location { Province = province, City = city });
             return result.ToArray();
         }
         public static void SetValue(Location location,bool value)

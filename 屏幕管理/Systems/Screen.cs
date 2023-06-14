@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using 屏幕管理.Interfaces;
 using static 屏幕管理.Systems.Screen;
 
 namespace 屏幕管理.Systems
@@ -36,8 +37,11 @@ namespace 屏幕管理.Systems
 
         [DllImport("dxva2.dll", SetLastError = true)]
         private extern static bool SetMonitorBrightness(IntPtr hMonitor, uint dwNewBrightness);
+
+        [DllImport("Powrprof.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern bool SetSuspendState(bool hiberate, bool forceCritical, bool disableWakeEvent);
         private static readonly IntPtr _currentMonitor = GetCurrentMonitor();
-        private static readonly PHYSICAL_MONITOR[] _MONITORs = GetPhysicalMonitors(_currentMonitor);
+        //private static readonly PHYSICAL_MONITOR[] _MONITORs = GetPhysicalMonitors(_currentMonitor);
         private static readonly IntPtr _handle = new(0xffff);
         private static bool _screenActivation = true;
         private static IntPtr GetCurrentMonitor()
@@ -46,15 +50,15 @@ namespace 屏幕管理.Systems
                 throw new Win32Exception(Marshal.GetLastWin32Error());
             return MonitorFromPoint(point, MONITOR_DEFAULTTONEAREST);
         }
-        private static PHYSICAL_MONITOR[] GetPhysicalMonitors(IntPtr hMonitor)
-        {
-            if (!GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, out uint dwNumberOfPhysicalMonitors))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            PHYSICAL_MONITOR[] physicalMonitorArray = new PHYSICAL_MONITOR[dwNumberOfPhysicalMonitors];
-            if (!GetPhysicalMonitorsFromHMONITOR(hMonitor, dwNumberOfPhysicalMonitors, physicalMonitorArray))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            return physicalMonitorArray;
-        }
+        //private static PHYSICAL_MONITOR[] GetPhysicalMonitors(IntPtr hMonitor)
+        //{
+        //    if (!GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, out uint dwNumberOfPhysicalMonitors))
+        //        throw new Win32Exception(Marshal.GetLastWin32Error());
+        //    PHYSICAL_MONITOR[] physicalMonitorArray = new PHYSICAL_MONITOR[dwNumberOfPhysicalMonitors];
+        //    if (!GetPhysicalMonitorsFromHMONITOR(hMonitor, dwNumberOfPhysicalMonitors, physicalMonitorArray))
+        //        throw new Win32Exception(Marshal.GetLastWin32Error());
+        //    return physicalMonitorArray;
+        //}
         private static double GetMonitorBrightness(PHYSICAL_MONITOR physicalMonitor)
         {
             double result = 0;
@@ -77,33 +81,67 @@ namespace 屏幕管理.Systems
             get => _screenActivation;
             set
             {
-                if (value) PowerOn();
-                else PowerOff();
+                if (value) ScreenPowerOn();
+                else ScreenPowerOff();
             }
         }
-        internal static void PowerOff() {
-            SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2);
-            _screenActivation = false;
-        }
-        internal static void PowerOn() {
-            Keybd_Event(Keys.Space, 0, 0, 0);
-            SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, -1);
-            _screenActivation = true;
-        }
-        internal static void SetBrightness(double brightness)
-        {
-            foreach (var _MONITOR in _MONITORs)
+        internal static void ScreenPowerOff() {
+            try
             {
-                try
-                {
-                    SetMonitorBrightness(_MONITOR, brightness);
-                }
-                catch (Exception ex)
-                {
-                    Log.Default.Error(ex, "SetBrightness", $"Parameter:{brightness}");
-                }
+                Global.MQTTLog?.Invoke("ScreenPowerOff", "关屏");
+                Log.Default.Info("执行关屏", "ScreenPowerOff");
+                _screenActivation = false;
+                if (!Global.IsDebug)
+                    SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2);
+            }
+            catch (Exception ex)
+            {
+                Log.Default.Error(ex, "PowerOn");
+            }
+           }
+        internal static void ScreenPowerOn() {
+            try
+            {
+                Global.MQTTLog?.Invoke("ScreenPowerOn", "开屏");
+                Log.Default.Info("执行开屏", "ScreenPowerOn");
+                Keybd_Event(Keys.NoName, 0, 0, 0);
+                _screenActivation = true;
+                if (!Global.IsDebug)
+                    SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, -1);
+            }
+            catch(Exception ex)
+            {
+                Log.Default.Error(ex, "PowerOn");
             }
         }
+        internal static void ScreenPower(bool activation)
+        {
+            try
+            {
+                Global.MQTTLog?.Invoke("ScreenPower", activation ? "开屏" : "关屏");
+                _screenActivation = activation;
+                if (!Global.IsDebug)
+                    SendMessage(_handle, WM_SYSCOMMAND, SC_MONITORPOWER, activation ? -1 : 2);
+            }
+            catch (Exception ex)
+            {
+                Log.Default.Error(ex, "ScreenPower");
+            }
+        }
+        //internal static void SetBrightness(double brightness)
+        //{
+        //    foreach (var _MONITOR in _MONITORs)
+        //    {
+        //        try
+        //        {
+        //            SetMonitorBrightness(_MONITOR, brightness);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Log.Default.Error(ex, "SetBrightness", $"Parameter:{brightness}");
+        //        }
+        //    }
+        //}
         internal static bool SetScreenMode(ScreenModeEnum screenMode)
         {
             var mode = screenMode switch

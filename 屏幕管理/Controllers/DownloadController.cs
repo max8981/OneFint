@@ -101,7 +101,9 @@ namespace 屏幕管理.Controllers
                 };
                 FileSize = 1;
                 _netTask = downloadQueue.MakeDefault(url);
-                var tempFile = Path.GetTempFileName();
+                var tempFile = Path.Combine(materialPath, $"{DateTime.Now.Ticks}.tmp");
+                if(System.IO.File.Exists(tempFile))
+                    System.IO.File.Delete(tempFile);
                 FileName = new FileInfo(Path.Combine(materialPath, Name)).FullName;
                 _netTask.Filename = tempFile;
                 _netTask.StartCallback = () => timer.Start();

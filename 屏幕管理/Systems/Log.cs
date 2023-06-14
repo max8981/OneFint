@@ -33,7 +33,7 @@ namespace 屏幕管理.Systems
                 DateTime lastSaveLogTime = DateTime.Now;
                 while (!cancellationToken.IsCancellationRequested)//如果没有取消线程，则一直监听执行写LOG
                 {
-                    if (logMsgQueue.Count >= 10 || !logMsgQueue.IsEmpty && (DateTime.Now - lastSaveLogTime).TotalSeconds > 30)//如是待写日志消息累计>=10条或上一次距离现在写日志时间超过30s则需要批量提交日志
+                    if (logMsgQueue.Count >= 10 || !logMsgQueue.IsEmpty && (DateTime.Now - lastSaveLogTime).TotalSeconds > 5)//如是待写日志消息累计>=10条或上一次距离现在写日志时间超过30s则需要批量提交日志
                     {
                         List<string[]> logMsgList = new();
                         while (logMsgList.Count < 10 && logMsgQueue.TryDequeue(out var logMsgItems))

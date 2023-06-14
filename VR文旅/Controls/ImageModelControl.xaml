@@ -8,10 +8,20 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid x:Name="grid">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="10*"/>
+            <ColumnDefinition Width="5*"/>
             <ColumnDefinition Width="80*"/>
-            <ColumnDefinition Width="10*"/>
+            <ColumnDefinition Width="5*"/>
         </Grid.ColumnDefinitions>
-        <StackPanel x:Name="panel" Grid.Column="1" Orientation="Horizontal"/>
+        <Border x:Name="left" >
+            <Image x:Name="leftImage"/>
+        </Border>
+        <Border x:Name="right" Grid.Column="2">
+            <Image x:Name="rightImage"/>
+        </Border>
+        <ScrollViewer x:Name="scroll" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+            <ScrollViewer.Content>
+                <StackPanel x:Name="panel"  Orientation="Horizontal" CanHorizontallyScroll="True" CanVerticallyScroll="True" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+            </ScrollViewer.Content>
+        </ScrollViewer>
     </Grid>
 </UserControl>

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,40 +23,44 @@ namespace VR文旅.Controls
     /// </summary>
     public partial class FilterControl : UserControl
     {
-        private double _lastWidth = 0;
         public FilterControl()
         {
             InitializeComponent();
             grid.SizeChanged += (o, e) =>
             {
-                if (_lastWidth != grid.ActualWidth)
-                {
-                    province.FontSize = grid.ActualHeight / 2;
-                    province.Width = grid.ActualHeight * 3;
-                    city.FontSize = grid.ActualHeight / 2;
-                    city.Width = grid.ActualHeight * 3;
-                    type.FontSize = grid.ActualHeight / 2;
-                    type.Width = grid.ActualHeight * 3;
-                    _lastWidth = grid.ActualWidth;
-                }
+                //if (_lastWidth != grid.ActualWidth)
+                //{
+                //    province.FontSize = grid.ActualHeight / 2;
+                //    province.Width = grid.ActualHeight * 3;
+                //    city.FontSize = grid.ActualHeight / 2;
+                //    city.Width = grid.ActualHeight * 3;
+                //    type.FontSize = grid.ActualHeight / 2;
+                //    type.Width = grid.ActualHeight * 3;
+                //    _lastWidth = grid.ActualWidth;
+                //}
+                province.Height = grid.ActualHeight / 2;
+                city.Height = grid.ActualHeight / 2;
+                type.Height = grid.ActualHeight / 2;
             };
             Loaded += async (o, e) =>
             {
                 await Models.ProvinceAndCity.GetProvinceAndCityAsync();
                 await Models.ScenarioCategories.GetScenarioCategoriesAsync();
+                province.SetData(Models.ProvinceAndCity.GetProvinceList);
+                city.SetData(Models.ProvinceAndCity.GetCityList(province.GetSelected()));
+                type.SetData(Models.ScenarioCategories.GetScenarioCategories());
+                type.IsSingleSelection = true;
             };
-            Margin = new Thickness(0,20,0,10);
+            province.Selected += x => city.SetData(Models.ProvinceAndCity.GetCityList(x));
+            province.Selected += x => DropDownClosed();
+            city.Selected += x => DropDownClosed();
+            type.Selected += x => DropDownClosed();
             HorizontalAlignment = HorizontalAlignment.Stretch;
             VerticalAlignment = VerticalAlignment.Top;
-            province.DropDownOpened += ProvinceDropDownOpened;
-            province.DropDownClosed += DropDownClosed;
-            province.SelectionChanged += SelectionChanged;
-            city.DropDownOpened += CityDropDownOpened;
-            city.DropDownClosed += DropDownClosed;
-            city.SelectionChanged += SelectionChanged;
-            type.DropDownOpened += TypeDropDownOpened;
-            type.DropDownClosed += DropDownClosed;
-            type.SelectionChanged += TypeSelectionChanged;
+            var imageBrush = new ImageBrush(Global.GetBitmap("Group4"))
+            {
+                Stretch = Stretch.Uniform,
+            };
         }
         private static void ProvinceDropDownOpened(object? sender, EventArgs e)
         {
@@ -106,7 +111,7 @@ namespace VR文旅.Controls
             {
                 type.Items.Clear();
                 foreach (var category in Models.ScenarioCategories.Types)
-                    type.Items.Add(GetTypeCheckBox(category));
+                    type.Items.Add(GetTypeCheckBox(category.Key, category.Value));
             }
         }
         private void TypeSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -127,16 +132,33 @@ namespace VR文旅.Controls
                     Models.ProvinceAndCity.SetValue(location, !Models.ProvinceAndCity.Location[location]);
                 }
         }
-        private static async void DropDownClosed(object? sender, EventArgs e)
+        private async void DropDownClosed()
         {
-            await Models.PLayLists.GetPLayList(Models.ProvinceAndCity.GetLocations(),Models.ScenarioCategories.GetTypes());
+            var p = province.GetSelected();
+            var c = city.GetSelected();
+            var t = type.GetSingleSelected();
+            await Models.PLayLists.GetPLayList(Models.ProvinceAndCity.GetLocations(p, c), t);
+            //await Models.PLayLists.GetPLayList(Models.ProvinceAndCity.GetLocations(),Models.ScenarioCategories.GetTypes());
+            //await Models.ProvinceAndCity.GetProvinceAndCityAsync();
+            //await Models.ScenarioCategories.GetScenarioCategoriesAsync();
         }
-        private static CheckBox GetTypeCheckBox(string text)
+        private async void DropDownClosed(object? sender, EventArgs e)
+        {
+            var p = province.GetSelected();
+            var c = city.GetSelected();
+            var t = type.GetSingleSelected();
+            await Models.PLayLists.GetPLayList(Models.ProvinceAndCity.GetLocations(p, c), t);
+            //await Models.PLayLists.GetPLayList(Models.ProvinceAndCity.GetLocations(),Models.ScenarioCategories.GetTypes());
+            //await Models.ProvinceAndCity.GetProvinceAndCityAsync();
+            //await Models.ScenarioCategories.GetScenarioCategoriesAsync();
+        }
+        private static CheckBox GetTypeCheckBox(string text,bool check)
         {
             var checkbox = new CheckBox
             {
                 Name = text,
-                Content = text
+                Content = text,
+                IsChecked = check,
             };
             return checkbox;
         }

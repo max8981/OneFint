@@ -20,7 +20,7 @@ namespace VR文旅.Models
         {
             var request = new
             {
-                org_id = 1,
+                org_id = Systems.Config.OrdId,
             };
             var response = await request.PostAsync<Standbys>(PATH);
             if (response.Success)

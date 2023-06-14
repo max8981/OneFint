@@ -24,19 +24,18 @@ namespace 屏幕管理
     public partial class MainWindow : Window
     {
         readonly Controllers.ClientController _controller;
-        readonly bool _isDebug = false;
         public MainWindow()
         {
             InitializeComponent();
             Config.Load();
-            Title += $"    {Config.Code}";
+            Title += $"    Code:{Config.Code}    ver:{Global.AppVersion}";
             if (Config.Dns != null)
                 Systems.Network.SetDns(Config.Dns);
-            TimeSpan? ts = Config.AutoReboot ? new TimeSpan(Config.RebootTimeHours, Global.Now.Minute, 0) : null;
+            TimeSpan? ts = Config.FakeShutdown ? null : Config.AutoReboot ? new TimeSpan(Config.RebootTimeHours, Global.Now.Minute, 0) : null;
 #if DEBUG
-            _isDebug = true;
+            Global.IsDebug = true;
 #endif
-            if (!_isDebug)
+            if (!Global.IsDebug)
             {
                 Regedit.SetAutoRun();
                 if (Regedit.DisableUAC())
@@ -63,6 +62,7 @@ namespace 屏幕管理
                 Process.GetCurrentProcess().Kill();
             };
             _controller.Connect();
+            this.WindowState = WindowState.Minimized;
         }
         private void RichTextBoxWriteLog(string title, string content)
         {

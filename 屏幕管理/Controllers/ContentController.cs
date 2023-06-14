@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using 屏幕管理.Models;
+using 屏幕管理.Systems;
 
 namespace 屏幕管理.Controllers
 {
@@ -21,6 +23,11 @@ namespace 屏幕管理.Controllers
             SetLayout(baseContent.Layout);
             SetContents(baseContent.DefaultContents);
             SetContents(baseContent.NormalContents);
+            var contents = baseContent.NormalContents ?? baseContent.DefaultContents;
+            var deviceId = contents?.FirstOrDefault()?.Device?.Id;
+            var deviceGroupId = baseContent.NormalContents?.FirstOrDefault()?.DeviceGroup?.Id;
+            Global.DeviceId = deviceId;
+            Global.DeviceGroupId = deviceGroupId;
         }
         private void EmergencyContent(ServerToClient.BaseContent baseContent)
         {
@@ -86,27 +93,30 @@ namespace 屏幕管理.Controllers
             var z = component.Z;
             var text = component.Text??new Models.BaseText();
             var rectangle = new System.Drawing.Rectangle(x, y, w, h);
-            var exhibition = Layouts[layoutIndex].TryAddExhibition(id, name, rectangle, z);
-            switch (component.ComponentType)
+            if(layoutIndex< Layouts.Length)
             {
-                case Enums.ComponentTypeEnum.IMAGE:
-                    break;
-                case Enums.ComponentTypeEnum.BROWSER:
-                    exhibition.SetWeb(text?.Text);
-                    break;
-                case Enums.ComponentTypeEnum.TEXT:
-                    exhibition.SetText(text);
-                    break;
-                case Enums.ComponentTypeEnum.VIDEO:
-                    break;
-                case Enums.ComponentTypeEnum.CLOCK:
-                    exhibition.SetClock(component.ClockType, text);
-                    break;
-                case Enums.ComponentTypeEnum.EXHIBITION_STAND:
-                    exhibition.SetExhibition();
-                    break;
+                var exhibition = Layouts[layoutIndex].TryAddExhibition(id, name, rectangle, z);
+                switch (component.ComponentType)
+                {
+                    case Enums.ComponentTypeEnum.IMAGE:
+                        break;
+                    case Enums.ComponentTypeEnum.BROWSER:
+                        exhibition.SetWeb(text?.Text);
+                        break;
+                    case Enums.ComponentTypeEnum.TEXT:
+                        exhibition.SetText(text);
+                        break;
+                    case Enums.ComponentTypeEnum.VIDEO:
+                        break;
+                    case Enums.ComponentTypeEnum.CLOCK:
+                        exhibition.SetClock(component.ClockType, text);
+                        break;
+                    case Enums.ComponentTypeEnum.EXHIBITION_STAND:
+                        exhibition.SetExhibition();
+                        break;
+                }
+                _exhibitions.TryAdd(id, exhibition);
             }
-            _exhibitions.TryAdd(id, exhibition);
         }
         private int GetPageIndex(ref Models.Component component, int index = 0)
         {
@@ -140,6 +150,8 @@ namespace 屏幕管理.Controllers
                     foreach (var content in item.OrderBy(_=>_.Order))
                         if (item.Key.HasValue)
                             _exhibitions[item.Key.Value].AddContent(content);
+                if (!Config.DelayedRefresh)
+                    Global.Jump();
             }
         }
         internal void Close()

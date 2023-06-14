@@ -6,36 +6,71 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <PlatformTarget>x64</PlatformTarget>
+    <ApplicationIcon>VR_Logo.ico</ApplicationIcon>
+	  <SatelliteResourceLanguages>zh</SatelliteResourceLanguages>
+	  <AssemblyVersion>1.0.0.5</AssemblyVersion>
+	  <FileVersion>1.0.0.5</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Left.png" />
+    <None Remove="Resources\Arrow1.png" />
+    <None Remove="Resources\Down.png" />
+    <None Remove="Resources\Ellipse1.png" />
+    <None Remove="Resources\Exit.png" />
+    <None Remove="Resources\Group4.png" />
+    <None Remove="Resources\Group5.png" />
+    <None Remove="Resources\Group6.png" />
     <None Remove="Resources\Logo.png" />
-    <None Remove="Resources\Right.png" />
+    <None Remove="Resources\Polygon4.png" />
+    <None Remove="Resources\Rectangle1.png" />
+    <None Remove="Resources\Rectangle2.png" />
+    <None Remove="Resources\Rectangle3.png" />
+    <None Remove="Resources\Rectangle4.png" />
+    <None Remove="Resources\Rectangle5.png" />
+    <None Remove="Resources\Rectangle6.png" />
+    <None Remove="Resources\Rectangle7.png" />
+    <None Remove="Resources\右翻页.png" />
+    <None Remove="Resources\左翻页.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Left.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Logo.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Right.png">
+    <Content Include="VR_Logo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\*.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Wpf.NETCore" Version="107.1.120">
+    <PackageReference Include="Autoupdater.NET.Official" Version="1.7.6" />
+    <PackageReference Include="CefSharp.Wpf.NETCore" Version="110.0.250">
+      <GeneratePathProperty>True</GeneratePathProperty>
+    </PackageReference>
+    <PackageReference Include="System.Management" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="chromiumembeddedframework.runtime.win-arm64" Version="110.0.25">
       <GeneratePathProperty>True</GeneratePathProperty>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="chromiumembeddedframework.runtime.win-arm64">
-      <GeneratePathProperty>True</GeneratePathProperty>
-    </PackageReference>
+    <PackageReference Update="chromiumembeddedframework.runtime.win-x64" Version="110.0.25" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="chromiumembeddedframework.runtime.win-x86" Version="110.0.25" />
   </ItemGroup>
 
 </Project>

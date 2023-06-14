@@ -45,7 +45,7 @@ namespace VR文旅.Controls
             var start = CurrentPage < PagerCount ? 1 : CurrentPage - PagerCount / 2;
             start = PageCount + 1 - CurrentPage < PagerCount ? PageCount + 1 - PagerCount : start;
             var end = start + PagerCount - 1;
-            if (start>1)
+            if (start > 1)
             {
                 panel.Children.Add(GetPageButton(1));
                 panel.Children.Add(GetPageEllipsisLabel());
@@ -55,6 +55,8 @@ namespace VR文旅.Controls
                     end--;
                 }
             }
+            else
+                start = 1;
             for (int i = start; i <= end; i++)
             {
                 panel.Children.Add(GetPageButton(i));
@@ -65,6 +67,10 @@ namespace VR文旅.Controls
             } 
             panel.Children.Add(GetNextPageButton());
             panel.Children.Add(GetPageCountLabel(PageCount));
+            if (PageCount > 1)
+                Visibility = Visibility.Visible;
+            else
+                Visibility = Visibility.Hidden;
         }
         #region 元素宽度
         /// <summary>
@@ -247,7 +253,7 @@ namespace VR文旅.Controls
             };
             return label;
         }
-        private Label GetPageCountLabel(int count)
+        private static Label GetPageCountLabel(int count)
         {
             Label label = new()
             {
@@ -256,6 +262,10 @@ namespace VR文旅.Controls
                 VerticalContentAlignment = VerticalAlignment.Center,
             };
             return label;
+        }
+        public void SetPage(int page)
+        {
+            CurrentPage = Math.Clamp(page, 0, PageCount);
         }
     }
 }

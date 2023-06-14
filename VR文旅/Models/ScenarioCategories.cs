@@ -20,14 +20,17 @@ namespace VR文旅.Models
         {
             var request = new
             {
-                org_id = 1,
+                org_id = Systems.Config.OrdId,
             };
             var response = await request.PostAsync<ScenarioCategories>(PATH);
             if (response.Success)
                 _categories = response.Categories;
+            foreach (var item in _categories)
+                _ = _types.TryAdd(item, false);
             return response.Success;
         }
-        public static string[] Types => _categories;
+        public static string[] GetScenarioCategories() => _categories;
+        public static Dictionary<string,bool> Types => _types;
         public static void SetValue(string key,bool value)
         {
             if (!_types.TryAdd(key, value))

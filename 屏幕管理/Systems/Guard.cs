@@ -14,9 +14,9 @@ namespace 屏幕管理.Systems
     {
         [DllImport("kernel32")]
         private static extern ExecutionStateEnum SetThreadExecutionState(ExecutionStateEnum esFlags);
-        private static readonly System.Timers.Timer _timer = new(1000);
-        private static readonly string _guardPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Watchdog.exe");
-        private static readonly string _name = "Watchdog";
+        private static readonly System.Timers.Timer _timer = new(10000);
+        private static readonly string _guardPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "watchdog.exe");
+        private static readonly string _name = "watchdog";
         public static void StartWatchdog(string appPath, int interval = 3000,TimeSpan? timeSpan = null)
         {
             var time = $"{timeSpan?.Hours:00}:{timeSpan?.Minutes:00}";
@@ -27,8 +27,9 @@ namespace 屏幕管理.Systems
             {
                 var ps = Process.GetProcessesByName(_name);
                 if (!ps.Any())
-                {
-                    Log.Default.Warn("启动守护", "StartWatchdog");
+                { 
+                    var p = $" {appPath} {interval} {time}";
+                    Log.Default.Warn("启动守护", "StartWatchdog", p,$"{e.SignalTime} {_timer.Interval}");
                     Process.Start(_guardPath, $" {appPath} {interval} {time}");
                 }
             };

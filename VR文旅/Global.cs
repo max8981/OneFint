@@ -10,12 +10,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
 namespace VR文旅
 {
     internal class Global
     {
+        public const string AppVersion = "1.0.0.5";
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern bool GetCursorPos(out MPoint point);
         private static Point _lastPoint = new();
@@ -32,6 +34,29 @@ namespace VR文旅
             bitmap.EndInit();
             bitmap.Freeze();
             return bitmap;
+        }
+        public static BitmapImage GetBitmap(FileInfo file)
+        {
+            System.Windows.Media.Imaging.BitmapImage bitmap = new();
+            if (File.Exists(file.FullName))
+            {
+                bitmap.BeginInit();
+                bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                using Stream ms = new MemoryStream(File.ReadAllBytes(file.FullName));
+                bitmap.StreamSource = ms;
+                bitmap.EndInit();
+                bitmap.Freeze();
+            }else
+                bitmap=GetBitmap("Logo");
+            return bitmap;
+        }
+        public static Image GetImage(string name)
+        {
+            Image result = new()
+            {
+                Source = GetBitmap(name)
+            };
+            return result;
         }
         public static Point GetMousePoint()
         {

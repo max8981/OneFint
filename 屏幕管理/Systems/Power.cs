@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace 屏幕管理.Systems
 {
@@ -16,8 +17,18 @@ namespace 屏幕管理.Systems
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetWaitableTimer(SafeWaitHandle hTimer, [In] ref long pDueTime, int lPeriod, IntPtr pfnCompletionRoutine, IntPtr lpArgToCompletionRoutin, bool fResume);
-        internal static void Reboot() => Process.Start("shutdown.exe", "-r -f -t 0");
-        internal static void ShutDown() => Process.Start("shutdown.exe", "-s -f -t 0");
+        internal static void Reboot()
+        {
+            if (!Global.IsDebug)
+                Process.Start("shutdown.exe", "-r -f -t 0");
+            Global.MQTTLog?.Invoke("Reboot", "重启");
+        }
+        internal static void ShutDown()
+        {
+            if (!Global.IsDebug)
+                Process.Start("shutdown.exe", "-s -f -t 0");
+            Global.MQTTLog?.Invoke("ShutDown", "关机");
+        }
         public static void HibernateTo(DateTime date)
         {
             var cmd = "powercfg.exe /hibernate on";

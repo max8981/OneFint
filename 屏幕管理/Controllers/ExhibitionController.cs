@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using 屏幕管理.Interfaces;
+using 屏幕管理.Systems;
 
 namespace 屏幕管理.Controllers
 {
@@ -99,14 +100,16 @@ namespace 屏幕管理.Controllers
         {
             while (!token.IsCancellationRequested)
             {
-                SpinWait.SpinUntil(() => !_pause);
+                //SpinWait.SpinUntil(() => !_pause);
                 bool isEmpty;
                 if (isEmpty=!GetContent(_emergencyContents, out Models.Content content))
                     if (isEmpty=!GetNewFlashContent(_newFlashContents, out content))
                         if (isEmpty = !GetContent(_normalContents, out content))
                             if (isEmpty = !GetContent(_defaultContents, out content))
                                 Task.Delay(1000, token).Wait(token);
-                if (!isEmpty && content.Material!=null)
+                if (!isEmpty && content.Material != null)
+                {
+                    Log.Default.Info($"[{DateTime.Now}][{content.Component?.Name}]{content.Name}", "AutoPlay");
                     switch (content.Material.MaterialType)
                     {
                         case Enums.MaterialTypeEnum.UNKNOWN_MATERIAL_TYPE:
@@ -127,6 +130,7 @@ namespace 屏幕管理.Controllers
                             PlayText(content);
                             break;
                     }
+                }
             }
         }
         private void PlayAudio(Models.Content content)
@@ -253,7 +257,10 @@ namespace 屏幕管理.Controllers
                 if (!DownloadController.TryGetMaterialFilePath(content.Material, out materialPath))
                 {
                     var download = DownloadController.GetOrAddTask(content.Material.Id, content.Material.Content!, content.Id, content.Device?.Id, content.DeviceGroup?.Id);
-                    result = _exhibition.ShowDownload(download.Name, download, content.PlayDuration);
+                    if (Systems.Config.ShowDownload)
+                        result = _exhibition.ShowDownload(download.Name, download, content.PlayDuration);
+                    else
+                        result = false;
                 }
             }
             return result;

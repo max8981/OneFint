@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using 屏幕管理.Systems;
@@ -19,6 +20,7 @@ namespace 屏幕管理.Controllers
         }
         internal static void USBUpdate()
         {
+            var name = Assembly.GetExecutingAssembly().GetName().Name;
             DriveInfo[] s = DriveInfo.GetDrives();
             foreach (DriveInfo drive in s)
             {
@@ -26,14 +28,14 @@ namespace 屏幕管理.Controllers
                 if (System.IO.Directory.Exists(path))
                     foreach (var item in System.IO.Directory.GetFiles(path))
                     {
-                        if (item.Contains("update.json"))
+                        if (item.Contains($"{name}.json"))
                         {
                             //Guard.Stop();
                             AutoUpdater.ParseUpdateInfoEvent += o =>
                             {
                                 var info = JsonSerializer.Deserialize<AutoUpdaterDotNET.UpdateInfoEventArgs>(o.RemoteData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                                 if (info != null)
-                                    info.DownloadURL = System.IO.Path.Combine(path, "client.zip");
+                                    info.DownloadURL = System.IO.Path.Combine(path, info.DownloadURL);
                                 o.UpdateInfo = info;
                             };
                             CheckUpdate(item);

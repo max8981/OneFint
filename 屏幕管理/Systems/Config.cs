@@ -46,6 +46,12 @@ namespace 屏幕管理.Systems
         public static int RebootTimeHours { get; set; } = 3;
         public static int GuardInterval { get; set; } = 3000;
         public static string? Dns { get; set; }
+        public static bool FakeShutdown { get; set; } = true;
+        public static bool ShowDownload { get;set; }
+        public static bool OfflinePlay { get; set; }
+        public static bool DelayedRefresh { get; set; }
+        public static int DeviceId { get; set; }
+        public static int DeviceGroupId { get; set; }
         public static void Save()
         {
             var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -74,7 +80,7 @@ namespace 屏幕管理.Systems
                     switch (item.PropertyType.Name)
                     {
                         case "Int32":
-                            item.SetValue(_config, int.Parse(value));
+                            item.SetValue(_config, int.TryParse(value, out var result) ? result : 0);
                             break;
                         case "Boolean":
                             item.SetValue(_config, bool.Parse(value));

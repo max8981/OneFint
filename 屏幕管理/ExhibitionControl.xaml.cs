@@ -57,6 +57,12 @@ namespace 屏幕管理
                 _media.Volume = 1;
                 _media.Stop();
                 _media.Play();
+                Global.Pause += x => {
+                    if (x)
+                        Dispatcher.Invoke(() => _media.Pause());
+                    else
+                        Dispatcher.Invoke(() => _media.Play());
+                };
                 _media.Visibility= Visibility.Visible;
             });
             var result = _media.DelayHidden(name,playtime);
@@ -230,9 +236,23 @@ namespace 屏幕管理
                         VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
                         HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch,
                         LoadedBehavior = MediaState.Manual,
-                        Stretch = Stretch.Fill,
+                        Stretch = Stretch.Uniform,
                     };
                     mediaElement.MediaEnded += (o, e) => mediaElement.Visibility = Visibility.Hidden;
+                    mediaElement.IsVisibleChanged += (o, e) =>
+                    {
+                        if ((bool)e.NewValue == false)
+                        {
+                            mediaElement.Pause();
+                        }else
+                            mediaElement.Play();
+                    };
+                    Global.Pause += x => {
+                        if (x)
+                            Dispatcher.Invoke(() => mediaElement.Pause());
+                        else
+                            Dispatcher.Invoke(() => mediaElement.Play());
+                    };
                     grid.Children.Add(mediaElement);
                     grid.RegisterName(name, mediaElement);
                 }
@@ -244,7 +264,7 @@ namespace 屏幕管理
                 return mediaElement;
             });
             var result = mediaElement.DelayHidden(name, playtime);
-            Dispatcher.Invoke(() => mediaElement.Visibility=Visibility.Hidden);
+            Dispatcher.Invoke(() => mediaElement.Visibility = Visibility.Hidden);
             return result;
         }
         public bool ShowWeb(string? url, int playtime = 15)

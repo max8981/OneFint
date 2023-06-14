@@ -22,38 +22,69 @@ namespace VR文旅.Controls
     public partial class ListModelControl : UserControl
     {
         public event Action<string?>? Selected;
+        private int _page = 0;
+        private double _lastWidth = 0;
         public ListModelControl()
         {
             InitializeComponent();
-            //dataGrid.MouseLeftButtonDown += (o, e) => ShowView();
-            dataGrid.SelectionChanged += (o, e) =>
+            grid.SizeChanged += (o, e) =>
             {
-                foreach (var item in e.AddedItems)
+                if (_lastWidth != grid.ActualWidth)
                 {
-                    if(item is Models.Scenario scenario)
-                    {
-                        Selected?.Invoke(scenario.WebLink);
-                        return;
-                    }
+                    var rowHeight = grid.ActualWidth / 20;
+                    var itemWidth = grid.ActualHeight / 3;
+                    var itemCount = grid.ActualHeight / 10;
+                    ItemCount = (int)(panel.ActualHeight / rowHeight);
+                    _lastWidth = grid.ActualWidth;
+                    //Draw();
                 }
             };
+            //dataGrid.MouseLeftButtonDown += (o, e) => ShowView();
             Models.PLayLists.PlayListChanged += o =>
             {
-                dataGrid.ItemsSource = Models.PLayLists.GetScenarios(0, 10);
+                _page = 0;
+                Draw();
             };
+        }
+        public int ItemCount
+        {
+            get { return (int)GetValue(ItemCountProperty); }
+            set { SetValue(ItemCountProperty, value); }
+        }
+        public static readonly DependencyProperty ItemCountProperty =
+            DependencyProperty.Register("ItemCount", typeof(int), typeof(ListModelControl), new PropertyMetadata(10, InitPagination));
+        private static void InitPagination(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ListModelControl pagination)
+                pagination.Draw();
         }
         internal void Draw()
         {
-            GetData(0);
+            var data = Models.PLayLists.GetScenarios(_page, ItemCount);
+            var c = (double)Models.PLayLists.Count / ItemCount;
+            pagination.PageCount = (int)Math.Ceiling(c);
+            pagination.PageSize = ItemCount;
+            panel.Children.Clear();
+            for (int i = 0; i < data.Length; i++)
+            {
+                var row = new ListRowControl(data[i]);
+                if (i % 2 != 0)
+                    row.Background = new SolidColorBrush(Colors.White);
+                row.Selected += Selected;
+                panel.Children.Add(row);
+            }
+            if (pagination.CurrentPage != _page + 1)
+                pagination.SetPage(_page + 1);
         }
-        private void pagination_PageChanged(object sender, RoutedEventArgs e)
+        private void Pagination_PageChanged(object sender, RoutedEventArgs e)
         {
             if (e is System.Windows.RoutedPropertyChangedEventArgs<int> value)
                 GetData(value.NewValue);
         }
         private void GetData(int page)
         {
-            dataGrid.ItemsSource = Models.PLayLists.GetScenarios(page - 1, 10);
+            _page = page - 1;
+            Draw();
         }
     }
 }

@@ -53,7 +53,6 @@ namespace VR文旅.Controls
     {
         private const string PrevButtonTemplateName = "PART_PREV";
         private const string NextButtonTemplateName = "PART_Next";
-        private const string PageItemsTemplateName = "PART_PAGE";
 
         private Button? _prevButton;
         private Button? _nextButton;
@@ -75,32 +74,32 @@ namespace VR文旅.Controls
         {
             if (_prevButton != null)
             {
-                _prevButton.Click -= _prevButton_Click;
+                _prevButton.Click -= PrevButton_Click;
             }
             if (_nextButton != null)
             {
-                _nextButton.Click -= _nextButton_Click;
+                _nextButton.Click -= NextButton_Click;
             }
             base.OnApplyTemplate();
             _prevButton = GetTemplateChild(PrevButtonTemplateName) as Button;
             _nextButton = GetTemplateChild(NextButtonTemplateName) as Button;
             if (_prevButton != null)
             {
-                _prevButton.Click += _prevButton_Click;
+                _prevButton.Click += PrevButton_Click;
             }
             if (_nextButton != null)
             {
-                _nextButton.Click += _nextButton_Click;
+                _nextButton.Click += NextButton_Click;
             }
             InitPager();
         }
 
-        private void _nextButton_Click(object sender, RoutedEventArgs e)
+        private void NextButton_Click(object sender, RoutedEventArgs e)
         {
             SetCurrentValue(CurrentPageProperty, CurrentPage + 1);
         }
 
-        private void _prevButton_Click(object sender, RoutedEventArgs e)
+        private void PrevButton_Click(object sender, RoutedEventArgs e)
         {
             SetCurrentValue(CurrentPageProperty, CurrentPage - 1);
         }
@@ -109,7 +108,7 @@ namespace VR文旅.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(Pagination), new FrameworkPropertyMetadata(typeof(Pagination)));
 
-            ItemsPanelTemplate template = new ItemsPanelTemplate(new FrameworkElementFactory(typeof(WrapPanel)));
+            ItemsPanelTemplate template = new(new FrameworkElementFactory(typeof(WrapPanel)));
             template.Seal();
             ItemsPanelProperty.OverrideMetadata(typeof(Pagination), new FrameworkPropertyMetadata(template));
         }

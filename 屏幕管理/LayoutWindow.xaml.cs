@@ -34,11 +34,13 @@ namespace 屏幕管理
             Top = screen.Bounds.Y;
             base.Width = SystemParameters.PrimaryScreenWidth;
             base.Height = SystemParameters.PrimaryScreenHeight;
-            //Activated += (o, e) => ShowCursor(0);
-            //Deactivated += (o, e) => ShowCursor(1);
+            Activated += (o, e) => ShowCursor(0);
+            Deactivated += (o, e) => ShowCursor(1);
 #if DEBUG
             Topmost = false;
-#endif 
+#endif
+            this.Activate();
+            this.Focus();
         }
         public int Id { get; set; }
         public void Clear()

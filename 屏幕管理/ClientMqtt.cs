@@ -14,6 +14,7 @@ namespace 屏幕管理
         private IMqttClient _mqttClient;
         private MqttClientOptionsBuilder _optionsBuilder;
         private MqttClientOptions _options;
+        private bool _loadLocation;
         internal Action<ServerToClient.TopicTypeEnum, string> Receive = (t, j) => { };
         internal Action Connected = () => { };
         internal ClientMqtt(string server, int port, string user = "admin", string password = "public")
@@ -79,6 +80,23 @@ namespace 屏幕管理
                 Global.MQTTLog($"Mqtt-Connect-Exception", ex.Message);
                 Log.Default.Error(ex, "ConnectAsync");
                 Global.ShowMessage($"连接服务器失败：{ex.Message}", 5);
+                if (Config.OfflinePlay&&!_loadLocation)
+                {
+                    Global.MQTTLog($"LoadLocation", ex.Message);
+                    Log.Default.Error(ex, "LoadLocation");
+                    if (System.IO.Directory.Exists("./record/"))
+                    {
+                        var files = System.IO.Directory.GetFiles("./record/");
+                        foreach (var file in files)
+                        {
+                            var name = System.IO.Path.GetFileName(file);
+                            var json = System.IO.File.ReadAllText(file);
+                            if (Enum.TryParse<ServerToClient.TopicTypeEnum>(name, out var topic))
+                                Receive(topic, json); 
+                        }
+                    }
+                    _loadLocation = true;
+                }
             }
         }
         internal async ValueTask<bool> ReConnectAsync(string server,int port, string user = "admin", string password = "public")
@@ -108,7 +126,7 @@ namespace 屏幕管理
             {
                 if (_mqttClient.IsConnected)
                 {
-                    await _mqttClient.PublishStringAsync(topic.ToString(), json);
+                    var a = await _mqttClient.PublishStringAsync(topic.ToString(), json);
                     Global.MQTTLog($"Mqtt-Send-{topic}", $"{json}");
                 }
                 else

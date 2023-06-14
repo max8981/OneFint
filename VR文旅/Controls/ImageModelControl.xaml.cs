@@ -22,22 +22,50 @@ namespace VR文旅.Controls
     public partial class ImageModelControl : UserControl
     {
         public event Action<string?>? Selected;
+        private readonly Dictionary<int, ImageModelView> _imageModelViews = new();
         private int _page = 0;
-        private double _lastWidth = 0;
+        private double _itemWidth;
+        private int _maxPage = 0;
+        private Point _mp;
+        private static bool _mm;
+        public static bool Move => _mm;
         public ImageModelControl()
         {
             InitializeComponent();
+            //left.PreviewMouseLeftButtonUp += (o, e) => PrevPage();
+            //leftImage.Source = Global.GetBitmap("左翻页");
+            //right.PreviewMouseLeftButtonUp += (o, e) => NextPage();
+            //rightImage.Source = Global.GetBitmap("右翻页");
             grid.SizeChanged += (o, e) =>
             {
-                if (_lastWidth != grid.ActualWidth)
-                {
-                    var itemWidth = grid.ActualHeight / 3;
-                    var itemCount = grid.ActualWidth / itemWidth;
-                    ItemCount = (int)itemCount - 1;
-                    _lastWidth= grid.ActualWidth;
-                }
+                _itemWidth = grid.ActualWidth / 4.5;
+                ItemCount = 999;
             };
             Models.PLayLists.PlayListChanged += x => Draw();
+            grid.PreviewMouseDown += (o, e) =>
+            {
+                _mm = false;
+                _mp = Global.GetMousePoint();
+            };
+            grid.PreviewMouseMove += (o, e) =>
+            {
+                if (e.LeftButton==MouseButtonState.Pressed)
+                {
+                    var mp = Global.GetMousePoint();
+                    if (mp.X > (_mp.X + 10))
+                    {
+                        _mp = mp;
+                        scroll.LineLeft();
+                        _mm = true;
+                    }
+                    else if (mp.X < (_mp.X - 10))
+                    {
+                        _mp = mp;
+                        scroll.LineRight();
+                        _mm = true;
+                    }
+                }
+            };
         }
         public int ItemCount
         {
@@ -53,53 +81,48 @@ namespace VR文旅.Controls
         }
         private void Draw()
         {
-            grid.Children.Add(GetLeftButton());
-            grid.Children.Add(GetRightButton());
             GetData(_page);
         }
-        private Image GetLeftButton()
+        public void NextPage()
         {
-            Image image = new()
-            {
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Stretch,
-                Source = Global.GetBitmap("Left"),
-            };
-            image.MouseLeftButtonDown += (o, e) =>
-            {
-                _page -= _page > 0 ? 1 : 0;
-                Draw();
-            };
-            Grid.SetColumn(image, 0);
-            return image;
+            //scroll.LineRight();
+            _page++;
+            _page = _page < _maxPage ? _page : 0;
+            //Draw();
         }
-        private Image GetRightButton()
+        public void PrevPage()
         {
-            Image image = new()
-            {
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Stretch,
-                Source = Global.GetBitmap("Right"),
-            };
-            image.MouseLeftButtonDown += (o, e) =>
-            {
-                var maxPage = Math.Ceiling((double)Models.PLayLists.Count / ItemCount);
-                _page++;
-                _page = _page < maxPage ? _page : 0;
-                Draw();
-            };
-            Grid.SetColumn(image, 2);
-            return image;
+            //scroll.LineLeft();
+            _page = _page > 0 ? _page - 1 : _maxPage - 1;
+            //Draw();
         }
         private void GetData(int page)
         {
             panel.Children.Clear();
+            _imageModelViews.Clear();
+            _maxPage = (int)Math.Ceiling((double)Models.PLayLists.Count / ItemCount);
             var data = Models.PLayLists.GetScenarios(page, ItemCount);
             for (int i = 0; i < data.Length; i++)
             {
-                var view = new ImageModelView(data[i]);
+                var view = new ImageModelView(data[i])
+                {
+                    Id = i,
+                    Width = _itemWidth,
+                    Margin = new(0, 0, 0, 0)
+                };
                 view.Selected += Selected;
+                _imageModelViews.Add(i, view);
                 panel.Children.Add(view);
+            }
+            if (_maxPage > 1)
+            {
+                left.Visibility = Visibility.Visible;
+                right.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                left.Visibility = Visibility.Hidden;
+                right.Visibility = Visibility.Hidden;
             }
         }
     }

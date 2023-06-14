@@ -1,4 +1,10 @@
-﻿namespace VR文旅.Models
+﻿using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
+using static VR文旅.Models.Standbys;
+
+namespace VR文旅.Models
 {
     internal struct Scenario
     {
@@ -18,5 +24,15 @@
         public string? WebLink { get; set; }
         [JsonPropertyName("thumb_url")]
         public string? ThumbUrl { get; set; }
+        public async Task<BitmapImage> GetBitmapAsync()
+        {
+            var filename = new Uri(ThumbUrl??"").Segments.Last();
+            var ext = System.IO.Path.GetExtension(filename);
+            var file = new FileInfo($"./Cache/{Id}{ScenarioName}{ext}");
+            if (await file.DownloadAsync(ThumbUrl))
+                return Global.GetBitmap(file);
+            else
+                return Global.GetBitmap("Logo");
+        }
     }
 }

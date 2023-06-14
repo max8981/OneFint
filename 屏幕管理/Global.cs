@@ -10,25 +10,36 @@ using System.Xml.Linq;
 using System.Windows.Interop;
 using Microsoft.Win32;
 using System.Diagnostics;
+using System.Windows.Threading;
 
 namespace 屏幕管理
 {
     internal static class Global
     {
+        private const long KB = 1024;
+        private const long MB = 1024 * KB;
+        private const long GB = 1024 * MB;
+        private const long TB = 1024 * GB;
         private readonly static LayoutWindow _codeView = new(System.Windows.Forms.Screen.AllScreens.First());
+        private readonly static Stopwatch _stopwatch = Stopwatch.StartNew();
         internal static Action<string, int> ShowMessage = (c, d) => { };
         internal static Action<string, string> MQTTLog = (t, c) => { };
         internal static Action<int, int?, int?> MaterialStatus = (c, d, g) => { };
+        internal static Action<bool> Pause = x => { if (x) _stopwatch.Stop(); else _stopwatch.Start(); };
+        internal static Action Jump = () => _stopwatch.Restart();
         internal static void ShowCode(string code) => _codeView.ShowCode(code);
         internal static void HiddenCode() => _codeView.HiddenCode();
         internal static DateTime Now => Systems.Time.Now;
-        internal static string AppVersion => "1.0.0.0";
+        internal static string AppVersion => "1.0.0.4";
         internal static string IpAddress => Systems.Network.GetIPAddresses();
         internal static string MacAddress => Systems.Network.GetMacAddress();
         internal static int Rom => (int)(Systems.Memory.RootPathSize / 1000_000_000);
         internal static int Ram => (int)(Systems.Memory.PhisicalMemory / 1000_000_000);
         internal static int FreeDisk => (int)(Systems.Memory.RootPathSpace / 1000_000_000);
         internal static bool Activation { get; set; }
+        internal static int? DeviceId { get; set; }
+        internal static int? DeviceGroupId { get; set; }
+        internal static bool IsDebug { get; set; }
 
         private static readonly ConcurrentDictionary<string, bool> _disengages = new();
         internal static System.Windows.Media.Imaging.BitmapImage GetImage(string imagePath)
@@ -48,6 +59,12 @@ namespace 屏幕管理
         internal static void Disengage(this System.Windows.FrameworkElement element) => _disengages[element.Name] = true;
         internal static bool DelayHidden(this System.Windows.FrameworkElement element,string name, int second)
         {
+            var ts = _stopwatch.Elapsed;
+            SpinWait.SpinUntil(() => {
+                var s = (_stopwatch.Elapsed - ts).TotalSeconds;
+                return s <= 0 || second < s;
+            });
+            return true;
             _disengages.AddOrUpdate(name, false, (k, v) => v = false);
             return !SpinWait.SpinUntil(() => _disengages[name], second * 1000);
         }
@@ -91,6 +108,14 @@ namespace 屏幕管理
             var base64Str = Convert.ToBase64String(bt);
             return base64Str;
         }
+        internal static string ToByteString(this long value) => value switch
+        {
+            > TB => $"{value /= TB:0.00}TB",
+            > GB => $"{value /= GB:0.00}GB",
+            > MB => $"{value /= MB:0.00}MB",
+            > KB => $"{value /= KB:0.00}KB",
+            _ => $"{value}B",
+        };
         internal static void Close()
         {
             foreach (var item in _disengages)

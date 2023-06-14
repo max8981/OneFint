@@ -11,23 +11,35 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="10*"/>
-            <RowDefinition Height="80*"/>
+            <RowDefinition Height="5*"/>
+            <RowDefinition Height="15*"/>
+            <RowDefinition Height="15*"/>
+            <RowDefinition Height="65*"/>
         </Grid.RowDefinitions>
 
-        <Controls:FilterControl VerticalAlignment="Stretch" Margin="0,20,0,0"/>
-        <TabControl Grid.Row="1">
-            <TabItem Header="图形模式">
+        <Controls:FilterControl Grid.Row="1" VerticalAlignment="Stretch" />
+        <Image x:Name="groupSelect" Grid.Row="2" VerticalAlignment="Center"/>
+        <TabControl x:Name="tabControl" Grid.Row="3" BorderBrush="{x:Null}" Background="{x:Null}">
+            <TabItem Header="TabItem" Visibility="Hidden" Height="0">
+                <Controls:ImageModelControl x:Name="image"/>
+            </TabItem>
+            <TabItem Header="TabItem"  Visibility="Hidden" Height="0">
+                <Controls:ListModelControl x:Name="list"/>
+            </TabItem>
+        </TabControl>
+        <Image x:Name="exitButton" HorizontalAlignment="Right" Height="48" Grid.RowSpan="2" VerticalAlignment="Top" Width="48" Panel.ZIndex="99"/>
+        <!--<TabControl x:Name="tab" Grid.Row="1">
+            <TabItem x:Name="tab1" Header="图形模式" >
                 <Grid Background="#FFE5E5E5">
                     <Controls:ImageModelControl Selected="ImageModelControl_Selected"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="列表模式">
+            <TabItem x:Name="tab2" Header="列表模式">
                 <Grid Background="#FFE5E5E5">
                     <Controls:ListModelControl Selected="ListModelControl_Selected"/>
                 </Grid>
             </TabItem>
-        </TabControl>
+        </TabControl>-->
 
     </Grid>
 </Page>

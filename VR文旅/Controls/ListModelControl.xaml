@@ -6,27 +6,12 @@
              xmlns:MyNamespace="clr-namespace:VR文旅.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid x:Name="grid">
         <Grid.RowDefinitions>
             <RowDefinition Height="202*"/>
             <RowDefinition Height="23*"/>
         </Grid.RowDefinitions>
-        <DataGrid x:Name="dataGrid" RowHeight="30">
-            <DataGrid.RowStyle>
-                <Style TargetType= "{x:Type DataGridRow}" >
-                    <Style.Triggers>
-                        <Trigger Property= "ItemsControl.AlternationIndex"
-                          Value= "0" >
-                            <Setter Property= "Background"  Value= "#FFE4DDB3"  />
-                        </Trigger>
-                        <Trigger Property= "ItemsControl.AlternationIndex"
-                          Value= "1" >
-                            <Setter Property= "Background"  Value= "#FFF2F2F2"  />
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.RowStyle>
-        </DataGrid>
-        <MyNamespace:PaginationControl x:Name="pagination" PageChanged="pagination_PageChanged" PageCount="10" PagerCount="5" Total="100" FontSize="22" Grid.Row="1"/>
+        <MyNamespace:PaginationControl x:Name="pagination" PageChanged="Pagination_PageChanged" FontSize="22" Grid.Row="1"/>
+        <StackPanel x:Name="panel"/>
     </Grid>
 </UserControl>

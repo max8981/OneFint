@@ -1,10 +1,14 @@
 ﻿using CefSharp.DevTools.Network;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Policy;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Animation;
 
@@ -13,15 +17,84 @@ namespace VR文旅
     internal static class Http
     {
         private static readonly HttpClient _client = new();
-        public static string Host { get; private set; } = "http://47.101.178.160:8079";
+        private static readonly Dictionary<FileInfo, bool> _downloadTasks = new();
+        private static readonly JsonSerializerOptions options = new()
+        {
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+        };
         public static async Task<T> PostAsync<T>(this object request,string path)where T : IResponse, new()
         {
-            var json=JsonSerializer.Serialize(request,new JsonSerializerOptions(JsonSerializerDefaults.General));
+            var json=JsonSerializer.Serialize(request,options);
             return await PostAsync<T>(path, json);
+        }
+        public static async Task<string> GetAsync(string url)
+        {
+            var result = string.Empty;
+            try
+            {
+                result = await _client.GetStringAsync(url);
+            }
+            catch(Exception ex)
+            {
+                Log.Default.Error(ex, "PostAsync", url);
+            }
+            return result;
+        }
+        public static async Task<bool> DownloadAsync(this FileInfo file, string? url)
+        {
+            var result = file.Exists;
+            if (!result&& !string.IsNullOrEmpty(url))
+            {
+                if (_downloadTasks.TryAdd(file, false))
+                {
+                    var tempFile = new FileInfo(Path.GetTempFileName());
+                    try
+                    {
+                        var response = await _client.GetAsync(url);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            using var stream = await response.Content.ReadAsStreamAsync();
+                            using var fileStream = tempFile.Create();
+                            //using var fileStream = file.Create();
+                            await stream.CopyToAsync(fileStream);
+                            if (!Directory.Exists(file.DirectoryName))
+                                _ = Directory.CreateDirectory(file.DirectoryName ?? "./");
+                            SpinWait.SpinUntil(() =>
+                            {
+                                fileStream.Dispose();
+                                try
+                                {
+                                    //tempFile.MoveTo(file.FullName);
+                                    System.IO.File.Move(tempFile.FullName, file.FullName, true);
+                                    return true;
+                                }
+                                catch
+                                {
+                                    return false;
+                                }
+                            });
+                            result = true;
+                            _downloadTasks[file] = true;
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+                }
+                else
+                    result = _downloadTasks[file];
+            }
+            return result;
+        }
+        public static bool GetDownloadStatus(this FileInfo file, string? url)
+        {
+            Task.Factory.StartNew(async () => await file.DownloadAsync(url));
+            return file.Exists;
         }
         private static async ValueTask<T> PostAsync<T>(string path, string json) where T : IResponse, new()
         {
-            var url = CombineUrl(Host, path);
+            var url = CombineUrl(Systems.Config.Server, path);
             var content = new StringContent(json);
             T result = new();
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
